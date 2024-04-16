@@ -1,5 +1,7 @@
 package com.corosus.watut.loader.fabric;
 
+import com.corosus.coroutil.config.ConfigCoroUtil;
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.WatutNetworking;
 import com.corosus.watut.particle.ParticleRotating;
@@ -19,8 +21,16 @@ public class WatutModFabricClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(WatutNetworkingFabric.NBT_PACKET_ID, (client, handler, buf, responseSender) -> {
 			CompoundTag nbt = buf.readNbt();
 			client.execute(() -> {
-				UUID uuid = UUID.fromString(nbt.getString(WatutNetworking.NBTDataPlayerUUID));
-				WatutMod.getPlayerStatusManagerClient().receiveAny(uuid, nbt);
+				try {
+					UUID uuid = UUID.fromString(nbt.getString(WatutNetworking.NBTDataPlayerUUID));
+					WatutMod.getPlayerStatusManagerClient().receiveAny(uuid, nbt);
+				} catch (Exception ex) {
+					CULog.dbg("WATUT ERROR: packet with invalid uuid sent from server");
+					CULog.dbg("full nbt data: " + nbt);
+					if (ConfigCoroUtil.useLoggingDebug) {
+						ex.printStackTrace();
+					}
+				}
 			});
 		});
 

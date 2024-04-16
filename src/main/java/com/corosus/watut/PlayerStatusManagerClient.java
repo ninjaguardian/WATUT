@@ -1,5 +1,6 @@
 package com.corosus.watut;
 
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.config.ConfigClient;
 import com.corosus.watut.math.Lerpables;
 import com.corosus.watut.particle.*;
@@ -896,7 +897,8 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
         if (getStatusLocal().getPlayerGuiState() != playerStatus || force) {
             CompoundTag data = new CompoundTag();
             data.putInt(WatutNetworking.NBTDataPlayerGuiStatus, playerStatus.ordinal());
-            //Watut.dbg("sending status from client: " + playerStatus + " for " + Minecraft.getInstance().player.getUUID());
+            CULog.dbg("sending status from client: " + playerStatus + " for " + Minecraft.getInstance().player.getUUID());
+            CULog.dbg("data: " + data);
             WatutNetworking.instance().clientSendToServer(data);
         }
         getStatusLocal().setPlayerGuiState(playerStatus);
@@ -910,7 +912,8 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
         if (getStatusLocal().getPlayerChatState() != playerStatus || force) {
             CompoundTag data = new CompoundTag();
             data.putInt(WatutNetworking.NBTDataPlayerChatStatus, playerStatus.ordinal());
-            WatutMod.dbg("sending chat status from client: " + playerStatus + " for " + Minecraft.getInstance().player.getUUID());
+            CULog.dbg("sending chat status from client: " + playerStatus + " for " + Minecraft.getInstance().player.getUUID());
+            CULog.dbg("data: " + data);
             WatutNetworking.instance().clientSendToServer(data);
         }
         getStatusLocal().setPlayerChatState(playerStatus);
@@ -927,6 +930,8 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                 data.putFloat(WatutNetworking.NBTDataPlayerMouseY, y);
                 data.putBoolean(WatutNetworking.NBTDataPlayerMousePressed, pressed);
 
+                CULog.dbg("sending mouse status from client for " + Minecraft.getInstance().player.getUUID());
+                CULog.dbg("data: " + data);
                 WatutNetworking.instance().clientSendToServer(data);
             }
         }
@@ -939,6 +944,8 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
         CompoundTag data = new CompoundTag();
         data.putFloat(WatutNetworking.NBTDataPlayerTypingAmp, status.getTypingAmplifier());
 
+        CULog.dbg("sending typing amp from client for " + Minecraft.getInstance().player.getUUID());
+        CULog.dbg("data: " + data);
         WatutNetworking.instance().clientSendToServer(data);
     }
 
@@ -946,6 +953,8 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
         CompoundTag data = new CompoundTag();
         data.putInt(WatutNetworking.NBTDataPlayerIdleTicks, status.getTicksSinceLastAction());
 
+        CULog.dbg("sending idle ticks from client for " + Minecraft.getInstance().player.getUUID());
+        CULog.dbg("data: " + data);
         WatutNetworking.instance().clientSendToServer(data);
     }
 

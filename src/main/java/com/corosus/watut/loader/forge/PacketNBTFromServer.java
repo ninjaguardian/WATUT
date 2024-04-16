@@ -1,5 +1,7 @@
 package com.corosus.watut.loader.forge;
 
+import com.corosus.coroutil.config.ConfigCoroUtil;
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.WatutNetworking;
 import net.minecraft.nbt.CompoundTag;
@@ -33,7 +35,11 @@ public class PacketNBTFromServer {
                     UUID uuid = UUID.fromString(nbt.getString(WatutNetworking.NBTDataPlayerUUID));
                     WatutMod.getPlayerStatusManagerClient().receiveAny(uuid, nbt);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    CULog.dbg("WATUT ERROR: packet with invalid uuid sent from server");
+                    CULog.dbg("full nbt data: " + msg.nbt);
+                    if (ConfigCoroUtil.useLoggingDebug) {
+                        ex.printStackTrace();
+                    }
                 }
             });
 
