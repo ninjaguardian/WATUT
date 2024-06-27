@@ -1,5 +1,6 @@
 package com.corosus.watut;
 
+import com.corosus.coroutil.util.CULog;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -262,16 +263,18 @@ public class CloudRenderHandler {
 
         //float timeShortAdj2 = (this.getTicks()) * 2F;
 
-        if (this.getTicks() % (20 * 10) == 0) {
+        if (this.getTicks() % (20 * 3) == 0) {
             cloudShapeNeedsPrecalc = true;
         }
 
         if (cloudShapeNeedsPrecalc) {
             cloudShapeNeedsPrecalc = false;
 
-            for (int x = 0; x <= cloudShape.getSizeX(); x++) {
-                for (int y = 0; y <= cloudShape.getSizeY(); y++) {
-                    for (int z = 0; z <= cloudShape.getSizeZ(); z++) {
+            cloudShape = new Cloud(20, 20, 20);
+
+            for (int x = 0; x < cloudShape.getSizeX(); x++) {
+                for (int y = 0; y < cloudShape.getSizeY(); y++) {
+                    for (int z = 0; z < cloudShape.getSizeZ(); z++) {
 
                         if ((x == cloudShape.getSizeX() / 2 && y == cloudShape.getSizeY() / 4 * 3)
                                 || (x == cloudShape.getSizeX() / 2 && z == cloudShape.getSizeZ() / 2)) {
@@ -281,6 +284,9 @@ public class CloudRenderHandler {
 
                         }
 
+                        /*float noiseThreshAdj = 1;
+                        cloudShape.addPoint(x, y, z, noiseThreshAdj);*/
+
                     }
                 }
             }
@@ -289,9 +295,9 @@ public class CloudRenderHandler {
             int maxDistToZeroAdjust = 6;
 
             //TODO: should only ever run once (in dev lifetime), as it should be stored/baked to data for use at runtime
-            for (int x = 0; x <= cloudShape.getSizeX(); x++) {
-                for (int y = 0; y <= cloudShape.getSizeY(); y++) {
-                    for (int z = 0; z <= cloudShape.getSizeZ(); z++) {
+            for (int x = 0; x < cloudShape.getSizeX(); x++) {
+                for (int y = 0; y < cloudShape.getSizeY(); y++) {
+                    for (int z = 0; z < cloudShape.getSizeZ(); z++) {
 
                         float maxDist = 99999;
 
@@ -302,23 +308,34 @@ public class CloudRenderHandler {
                                     int checkX = x + xt;
                                     int checkY = y + yt;
                                     int checkZ = z + zt;
+                                    if (xt > 0) {
+                                        int what = 0;
+                                    }
+                                    //CULog.dbg(checkX + " - " + checkY + " - " + checkZ);
+                                    //System.out.println();
                                     if (checkX < 0 || checkX >= cloudShape.getSizeX()) continue;
                                     if (checkY < 0 || checkY >= cloudShape.getSizeY()) continue;
                                     if (checkZ < 0 || checkZ >= cloudShape.getSizeZ()) continue;
 
-                                    Cloud.CloudPoint cloudPointCheck = cloudShape.getPoint(checkX, checkY, checkZ);
+                                    Cloud.CloudPoint cloudPointAvoidChanging = cloudShape.getPoint(x, y, z);
+                                    if (cloudPointAvoidChanging == null || cloudPointAvoidChanging.getShapeAdjustThreshold() != 1) {
+                                        Cloud.CloudPoint cloudPointCheck = cloudShape.getPoint(checkX, checkY, checkZ);
 
-                                    //TODO: for now assuming threshold of 1 = pure shape point, not a distance adjusted one, maybe change this behavior, flag them correctly
-                                    if (cloudPointCheck != null && cloudPointCheck.getShapeAdjustThreshold() == 1) {
+                                        //TODO: for now assuming threshold of 1 = pure shape point, not a distance adjusted one, maybe change this behavior, flag them correctly
+                                        if (cloudPointCheck != null && cloudPointCheck.getShapeAdjustThreshold() == 1) {
 
-                                        float dist = Vector3f.distance(x, y, z, checkX, checkY, checkZ);
-                                        if (dist < maxDist && dist <= maxDistToZeroAdjust) {
-                                            maxDist = dist;
-                                            float distFraction = Mth.clamp(1 - (dist / maxDistToZeroAdjust), 0, 0.99F);
-                                            //Cloud.CloudPoint cloudPoint = cloudShape.getPoint(checkX, checkY, checkZ);
-                                            cloudShape.addPoint(x, y, z, distFraction);
+                                            float dist = Vector3f.distance(x, y, z, checkX, checkY, checkZ);
+
+                                            if (dist <= maxDist && dist <= maxDistToZeroAdjust) {
+                                                maxDist = dist;
+                                                float distFraction = Mth.clamp(1 - (dist / maxDistToZeroAdjust), 0, 0.99F);
+                                                //distFraction = 0.5F;
+                                                //distFraction = rand.nextFloat() * 0.5F;
+                                                //Cloud.CloudPoint cloudPoint = cloudShape.getPoint(checkX, checkY, checkZ);
+                                                cloudShape.addPoint(x, y, z, distFraction);
+                                            }
+
                                         }
-
                                     }
 
                                 }
@@ -331,7 +348,7 @@ public class CloudRenderHandler {
         }
 
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 3; i++) {
             /*float radius = 50;
             Vector3f cubePos = new Vector3f((float) (Math.random() * radius - Math.random() * radius),
                     (float) (Math.random() * radius - Math.random() * radius),
@@ -365,7 +382,7 @@ public class CloudRenderHandler {
 
         PerlinNoise perlinNoise = PerlinNoiseHelper.get().getPerlinNoise();
 
-        long time = Minecraft.getInstance().level.getGameTime() * 1;
+        long time = 0;//Minecraft.getInstance().level.getGameTime() * 1;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
             for (int y = 0; y <= cloud.getSizeY(); y++) {
@@ -380,9 +397,9 @@ public class CloudRenderHandler {
 
         int radiusY = 10;
         float maxDistDiag = 34;
-        for (int x = 0; x <= cloud.getSizeX(); x++) {
-            for (int y = 0; y <= cloud.getSizeY(); y++) {
-                for (int z = 0; z <= cloud.getSizeZ(); z++) {
+        for (int x = 0; x < cloud.getSizeX(); x++) {
+            for (int y = 0; y < cloud.getSizeY(); y++) {
+                for (int z = 0; z < cloud.getSizeZ(); z++) {
                     float distFromCenterXZ = Vector3f.distance(cloud.getSizeX()/2, 0, cloud.getSizeZ()/2, x, 0, z);
                     float distFromCenterY = Vector3f.distance(0, cloud.getSizeY()/2, 0, 0, y, 0);
                     float vecXZ = distFromCenterXZ / (cloud.getSizeX() - 3);
@@ -396,6 +413,7 @@ public class CloudRenderHandler {
 
                     //TEMP
                     noiseThreshAdj = 0.8F;
+                    //noiseThreshAdj = 0.3F;
 
                     //double forceShapeAdj = 0;
                     //forced shape testing, a cross shape ( t )
@@ -403,6 +421,7 @@ public class CloudRenderHandler {
                     if (cloudPoint != null) {
                         //noiseThreshAdj -= (Math.sin(timeShortAdj2 * 0.01F) * 0.5F * cloudPoint.getShapeAdjustThreshold());
                         noiseThreshAdj -= cloudPoint.getShapeAdjustThreshold();
+                        //noiseThreshAdj = 0;
                     }
                     if ((x == cloud.getSizeX() / 2 && y == cloud.getSizeY() / 4 * 3)
                         || (x == cloud.getSizeX() / 2 && z == cloud.getSizeZ() / 2)) {
@@ -410,7 +429,7 @@ public class CloudRenderHandler {
                         //noiseThreshAdj -= (0.4 * Math.sin(timeShortAdj2 * 0.01F) * 1.2F);
                     }
 
-                    //noiseThreshAdj += 0.2F;
+                    //noiseThreshAdj -= 0.2F;
 
                     noiseThreshAdj += Math.sin(timeShortAdj1 * 0.005F) * 0.4F;
 
