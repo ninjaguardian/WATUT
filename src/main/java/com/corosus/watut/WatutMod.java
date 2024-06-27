@@ -16,6 +16,8 @@ public abstract class WatutMod
 
     private static WatutMod instance;
 
+    public static CloudRenderHandler cloudRenderHandler = new CloudRenderHandler();
+
     public static WatutMod instance() {
         return instance;
     }

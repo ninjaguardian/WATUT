@@ -13,6 +13,8 @@ public class ParticleRegistry {
     public static SpriteInfo escape;
     public static SpriteInfo sign;
     public static SpriteInfo book;
+    public static SpriteInfo white;
+    public static SpriteInfo cloud_square;
     public static SpriteInfo enchanting_table;
     public static SpriteInfo anvil;
     public static SpriteInfo beacon;
@@ -37,6 +39,8 @@ public class ParticleRegistry {
         escape = add("escape_menu_", 3, 0);
         sign = add("sign", 0, 0);
         book = add("book", 0, 0);
+        white = add("white", 0, 0);
+        cloud_square = add("cloud_square", 0, 0);
         enchanting_table = add("enchanting_table", 0, 0);
         anvil = add("anvil", 0, 0);
         beacon = add("beacon", 0, 0);

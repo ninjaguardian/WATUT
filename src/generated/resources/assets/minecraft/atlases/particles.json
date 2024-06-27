@@ -94,6 +94,14 @@
     },
     {
       "type": "minecraft:single",
+      "resource": "watut:particles/white"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "watut:particles/cloud_square"
+    },
+    {
+      "type": "minecraft:single",
       "resource": "watut:particles/enchanting_table"
     },
     {
