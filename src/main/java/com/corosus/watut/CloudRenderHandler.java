@@ -276,8 +276,8 @@ public class CloudRenderHandler {
                 for (int y = 0; y < cloudShape.getSizeY(); y++) {
                     for (int z = 0; z < cloudShape.getSizeZ(); z++) {
 
-                        if ((x == cloudShape.getSizeX() / 2 && y == cloudShape.getSizeY() / 4 * 3)
-                                || (x == cloudShape.getSizeX() / 2 && z == cloudShape.getSizeZ() / 2)) {
+                        if ((x == cloudShape.getSizeX() / 2 && y == cloudShape.getSizeY() / 4 * 3 && z > 3 && z < cloudShape.getSizeZ() - 3)
+                                || (x == cloudShape.getSizeX() / 2 && z == cloudShape.getSizeZ() / 2 && y > 3 && y < cloudShape.getSizeY() - 3)) {
                             //forceShapeAdj = 1;
                             float noiseThreshAdj = 1;//(float) -(0.4 * 1/*Math.sin(timeShortAdj2 * 0.01F)*/ * 1.2F);
                             cloudShape.addPoint(x, y, z, noiseThreshAdj);
@@ -348,7 +348,7 @@ public class CloudRenderHandler {
         }
 
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 10; i++) {
             /*float radius = 50;
             Vector3f cubePos = new Vector3f((float) (Math.random() * radius - Math.random() * radius),
                     (float) (Math.random() * radius - Math.random() * radius),
@@ -382,7 +382,7 @@ public class CloudRenderHandler {
 
         PerlinNoise perlinNoise = PerlinNoiseHelper.get().getPerlinNoise();
 
-        long time = 0;//Minecraft.getInstance().level.getGameTime() * 1;
+        long time = Minecraft.getInstance().level.getGameTime() * 1;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
             for (int y = 0; y <= cloud.getSizeY(); y++) {
@@ -566,13 +566,16 @@ public class CloudRenderHandler {
             if (cloudShapePoint != null) {
                 threshold = cloudShapePoint.getShapeAdjustThreshold();
             }
-            //particleRed = 0;
+            particleRed = 1F;
             //particleRed = (float) (0.85F + (rand2.nextFloat() * 0.08F));
             /*particleGreen = (float) Math.random();
             particleBlue = (float) Math.random();*/
-            particleGreen = (float) threshold - particleRed;
-            particleBlue = (float) particleRed - threshold;
+            particleGreen = threshold;
+            //particleBlue = (float) particleRed - threshold;
             particleBlue = 0;
+
+            /*particleGreen = particleRed;
+            particleBlue = particleRed;*/
 
 
 
