@@ -3,6 +3,7 @@ package com.corosus.watut;
 import com.corosus.modconfig.CoroConfigRegistry;
 import com.corosus.watut.config.ConfigClient;
 import com.corosus.watut.config.ConfigCommon;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.server.players.PlayerList;
 
 public abstract class WatutMod
@@ -17,6 +18,8 @@ public abstract class WatutMod
     private static WatutMod instance;
 
     public static CloudRenderHandler cloudRenderHandler = new CloudRenderHandler();
+
+    public static ShaderInstance cloudShader;
 
     public static WatutMod instance() {
         return instance;

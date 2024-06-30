@@ -21,6 +21,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -42,13 +43,25 @@ public class CloudRenderHandler {
     private int prevCloudZ;
     private CloudStatus prevCloudsType;
     private Vec3 prevCloudColor;
-    private boolean generateClouds;
+    private boolean generateClouds = true;
     private VertexBuffer cloudBuffer;
+    private List<VertexBuffer> cloudBuffers = new ArrayList<>();
+    private boolean multiBufferMode = false;
+    private int cloudCount = 150;
+
+    private int quadCount = 0;
+    private int pointCount = 0;
 
     private long timeOffset = 0;
 
-    private Cloud cloudShape = new Cloud(20, 20, 20);
+    private int sizeX = 30;
+    private int sizeY = 20;
+    private int sizeZ = 30;
+
+    private Cloud cloudShape = new Cloud(sizeX, sizeY, sizeZ);
+    private Cloud cloudShape2 = new Cloud(sizeX, sizeY, sizeZ);
     private boolean cloudShapeNeedsPrecalc = true;
+    private boolean cloudShape2NeedsPrecalc = true;
 
     private static final ResourceLocation CLOUDS_LOCATION = new ResourceLocation("textures/environment/clouds.png");
 
@@ -71,13 +84,15 @@ public class CloudRenderHandler {
 
     public void renderClouds(PoseStack p_254145_, Matrix4f p_254537_, float p_254364_, double p_253843_, double p_253663_, double p_253795_) {
         //if (true) return;
+        if (WatutMod.cloudShader == null) return;
         if (getLevel().effects().renderClouds(getLevel(), getTicks(), p_254364_, p_254145_, p_253843_, p_253663_, p_253795_, p_254537_))
             return;
         float f = this.getLevel().effects().getCloudHeight();
         if (!Float.isNaN(f)) {
             RenderSystem.enableCull();
             //RenderSystem.disableCull();
-            RenderSystem.enableBlend();
+            //RenderSystem.enableBlend();
+            RenderSystem.disableBlend();
             RenderSystem.enableDepthTest();
             //RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             RenderSystem.depthMask(true);
@@ -106,36 +121,80 @@ public class CloudRenderHandler {
                 //this.generateClouds = true;
             }
 
-            if (getTicks() % (20 * 0.1) == 0) {
+            if (getTicks() % (20 * 30) == 0 && true) {
+
+                multiBufferMode = true;
                 generateClouds = true;
+
+                cloudCount = 150;
             }
 
             Vec3 pos = Minecraft.getInstance().cameraEntity.position();
 
             if (this.generateClouds) {
+                pointCount = 0;
+                quadCount = 0;
+
                 this.generateClouds = false;
-                BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-                if (this.cloudBuffer != null) {
-                    this.cloudBuffer.close();
+
+                boolean renderClouds = true;
+
+                if (multiBufferMode) {
+                    cloudBuffers.clear();
+
+                    rand = new Random(5);
+
+                    for (int ii = 0; ii < cloudCount; ii++) {
+                        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+                        VertexBuffer cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                        float scale = 3;
+                        int offsetXZ = (int) (20 * scale) / 2;
+
+                        //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
+                        timeOffset = this.getTicks();
+                        BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale);
+                        //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
+                        cloudBuffer.bind();
+                        //cloudBuffer.upload(bufferbuilder$renderedbuffer);
+                        cloudBuffers.add(cloudBuffer);
+                        VertexBuffer.unbind();
+                    }
+                } else {
+                    BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+                    if (this.cloudBuffer != null) {
+                        this.cloudBuffer.close();
+                    }
+
+                    this.cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
+                    //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.buildClouds(bufferbuilder, d2, d3, d4, vec3);
+
+                    //from the cloud grid size
+                    float scale = 3;
+                    int offsetXZ = (int) (20 * scale) / 2;
+
+                    //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
+                    timeOffset = this.getTicks();
+                    rand = new Random(5);
+                    BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale);
+                    //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
+                    this.cloudBuffer.bind();
+                    this.cloudBuffer.upload(bufferbuilder$renderedbuffer);
+                    VertexBuffer.unbind();
                 }
 
-                this.cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.buildClouds(bufferbuilder, d2, d3, d4, vec3);
+                System.out.println("total clouds point count: " + pointCount);
+                System.out.println("total clouds quad count: " + quadCount);
 
-                //from the cloud grid size
-                float scale = 3;
-                int offsetXZ = (int) (20 * scale) / 2;
-
-                //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
-                timeOffset = this.getTicks();
-                BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale);
-                //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
-                this.cloudBuffer.bind();
-                this.cloudBuffer.upload(bufferbuilder$renderedbuffer);
-                VertexBuffer.unbind();
             }
 
-            RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
+            /*if (WatutMod.cloudShader != null) {
+                RenderSystem.setShader(() -> WatutMod.cloudShader);
+            } else {
+                RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
+            }*/
+
+            RenderSystem.setShader(() -> WatutMod.cloudShader);
+            RenderSystem.setupShaderLights(WatutMod.cloudShader);
             //RenderSystem.setShaderTexture(0, CLOUDS_LOCATION);
             RenderSystem.setShaderTexture(0, ParticleRegistry.idle.getSprite().atlasLocation());
             //FogRenderer.levelFogColor();
@@ -148,22 +207,33 @@ public class CloudRenderHandler {
             float timeShort = (this.getTicks() % (20 * 30)) * 3F;
 
             p_254145_.translate(((timeShort + p_254364_)) * 0.03F, 0, 0);
-            if (this.cloudBuffer != null) {
-                this.cloudBuffer.bind();
-                int l = this.prevCloudsType == CloudStatus.FANCY ? 0 : 1;
+            boolean renderClouds = true;
+            if (renderClouds) {
+                if (multiBufferMode) {
+                    if (cloudBuffers.size() > 0) {
+                        for (VertexBuffer cloudBuffer : cloudBuffers) {
+                            cloudBuffer.bind();
 
-                for(int i1 = l; i1 < 2; ++i1) {
-                    if (i1 == 0) {
-                        RenderSystem.colorMask(false, false, false, false);
-                    } else {
-                        RenderSystem.colorMask(true, true, true, true);
+                            RenderSystem.colorMask(true, true, true, true);
+
+                            ShaderInstance shaderinstance = RenderSystem.getShader();
+                            cloudBuffer.drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+
+                            VertexBuffer.unbind();
+                        }
                     }
+                } else {
+                    if (this.cloudBuffer != null) {
+                        this.cloudBuffer.bind();
 
-                    ShaderInstance shaderinstance = RenderSystem.getShader();
-                    this.cloudBuffer.drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                        RenderSystem.colorMask(true, true, true, true);
+
+                        ShaderInstance shaderinstance = RenderSystem.getShader();
+                        this.cloudBuffer.drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+
+                        VertexBuffer.unbind();
+                    }
                 }
-
-                VertexBuffer.unbind();
             }
 
             p_254145_.popPose();
@@ -256,33 +326,52 @@ public class CloudRenderHandler {
     }
 
     private BufferBuilder.RenderedBuffer renderVBO(BufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
-        RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
+        //RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
         bufferIn.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
-
-        rand = new Random(5);
 
         //float timeShortAdj2 = (this.getTicks()) * 2F;
 
-        if (this.getTicks() % (20 * 3) == 0) {
+        if (this.getTicks() % (20 * 30) == 0 && false) {
             cloudShapeNeedsPrecalc = true;
         }
 
         if (cloudShapeNeedsPrecalc) {
             cloudShapeNeedsPrecalc = false;
 
-            cloudShape = new Cloud(20, 20, 20);
+            sizeX = 40;
+            sizeY = 100;
+            sizeZ = 40;
+
+            cloudShape = new Cloud(sizeX, sizeY, sizeZ);
 
             for (int x = 0; x < cloudShape.getSizeX(); x++) {
                 for (int y = 0; y < cloudShape.getSizeY(); y++) {
                     for (int z = 0; z < cloudShape.getSizeZ(); z++) {
 
-                        if ((x == cloudShape.getSizeX() / 2 && y == cloudShape.getSizeY() / 4 * 3 && z > 3 && z < cloudShape.getSizeZ() - 3)
+                        /*if ((x == cloudShape.getSizeX() / 2 && y == cloudShape.getSizeY() / 4 * 3 && z > 3 && z < cloudShape.getSizeZ() - 3)
                                 || (x == cloudShape.getSizeX() / 2 && z == cloudShape.getSizeZ() / 2 && y > 3 && y < cloudShape.getSizeY() - 3)) {
                             //forceShapeAdj = 1;
-                            float noiseThreshAdj = 1;//(float) -(0.4 * 1/*Math.sin(timeShortAdj2 * 0.01F)*/ * 1.2F);
+                            float noiseThreshAdj = 1;
                             cloudShape.addPoint(x, y, z, noiseThreshAdj);
 
+                        }*/
+
+                        float xzRatio = Mth.clamp(1F - ((float)y / (float)(cloudShape.getSizeY() - 30)), 0.3F, 0.7F);
+
+                        if ((x > (xzRatio * cloudShape.getSizeX()) && x < cloudShape.getSizeX() - (xzRatio * cloudShape.getSizeX()))
+                            && (z > (xzRatio * cloudShape.getSizeZ()) && z < cloudShape.getSizeZ() - (xzRatio * cloudShape.getSizeZ()))) {
+
+                            float noiseThreshAdj = 1;
+                            cloudShape.addPoint(x, y, z, noiseThreshAdj);
                         }
+
+                        /*if ((x == cloudShape.getSizeX() / 2 && y == cloudShape.getSizeY() / 4 * 3 && z > 3 && z < cloudShape.getSizeZ() - 3)
+                                || (x == cloudShape.getSizeX() / 2 && z == cloudShape.getSizeZ() / 2 && y > 3 && y < cloudShape.getSizeY() - 3)) {
+                            //forceShapeAdj = 1;
+                            float noiseThreshAdj = 1;
+                            cloudShape.addPoint(x, y, z, noiseThreshAdj);
+
+                        }*/
 
                         /*float noiseThreshAdj = 1;
                         cloudShape.addPoint(x, y, z, noiseThreshAdj);*/
@@ -291,64 +380,41 @@ public class CloudRenderHandler {
                 }
             }
 
-            //how far from a point in the shape to have no threshold adjustment at all
-            int maxDistToZeroAdjust = 6;
+            cloudShape2 = new Cloud(sizeX, sizeY, sizeZ);
 
-            //TODO: should only ever run once (in dev lifetime), as it should be stored/baked to data for use at runtime
-            for (int x = 0; x < cloudShape.getSizeX(); x++) {
-                for (int y = 0; y < cloudShape.getSizeY(); y++) {
-                    for (int z = 0; z < cloudShape.getSizeZ(); z++) {
+            for (int x = 0; x < cloudShape2.getSizeX(); x++) {
+                for (int y = 0; y < cloudShape2.getSizeY(); y++) {
+                    for (int z = 0; z < cloudShape2.getSizeZ(); z++) {
 
-                        float maxDist = 99999;
+                        if ((x == cloudShape2.getSizeX() / 2 && y == cloudShape2.getSizeY() / 4 * 1 && z > 3 && z < cloudShape2.getSizeZ() - 3)
+                                || (z == cloudShape2.getSizeZ() / 2 && y == cloudShape2.getSizeY() / 4 * 1 && x > 3 && x < cloudShape2.getSizeX() - 3)) {
+                            //forceShapeAdj = 1;
+                            float noiseThreshAdj = 1;
+                            cloudShape2.addPoint(x, y, z, noiseThreshAdj);
 
-                        for (int xt = -maxDistToZeroAdjust; xt <= maxDistToZeroAdjust; xt++) {
-                            for (int yt = -maxDistToZeroAdjust; yt <= maxDistToZeroAdjust; yt++) {
-                                for (int zt = -maxDistToZeroAdjust; zt <= maxDistToZeroAdjust; zt++) {
-
-                                    int checkX = x + xt;
-                                    int checkY = y + yt;
-                                    int checkZ = z + zt;
-                                    if (xt > 0) {
-                                        int what = 0;
-                                    }
-                                    //CULog.dbg(checkX + " - " + checkY + " - " + checkZ);
-                                    //System.out.println();
-                                    if (checkX < 0 || checkX >= cloudShape.getSizeX()) continue;
-                                    if (checkY < 0 || checkY >= cloudShape.getSizeY()) continue;
-                                    if (checkZ < 0 || checkZ >= cloudShape.getSizeZ()) continue;
-
-                                    Cloud.CloudPoint cloudPointAvoidChanging = cloudShape.getPoint(x, y, z);
-                                    if (cloudPointAvoidChanging == null || cloudPointAvoidChanging.getShapeAdjustThreshold() != 1) {
-                                        Cloud.CloudPoint cloudPointCheck = cloudShape.getPoint(checkX, checkY, checkZ);
-
-                                        //TODO: for now assuming threshold of 1 = pure shape point, not a distance adjusted one, maybe change this behavior, flag them correctly
-                                        if (cloudPointCheck != null && cloudPointCheck.getShapeAdjustThreshold() == 1) {
-
-                                            float dist = Vector3f.distance(x, y, z, checkX, checkY, checkZ);
-
-                                            if (dist <= maxDist && dist <= maxDistToZeroAdjust) {
-                                                maxDist = dist;
-                                                float distFraction = Mth.clamp(1 - (dist / maxDistToZeroAdjust), 0, 0.99F);
-                                                //distFraction = 0.5F;
-                                                //distFraction = rand.nextFloat() * 0.5F;
-                                                //Cloud.CloudPoint cloudPoint = cloudShape.getPoint(checkX, checkY, checkZ);
-                                                cloudShape.addPoint(x, y, z, distFraction);
-                                            }
-
-                                        }
-                                    }
-
-                                }
-                            }
                         }
+
+                        /*if ((x == 0 || x == cloudShape2.getSizeX() - 1) && (z == 0 || z == cloudShape2.getSizeZ() - 1)) {
+                            //forceShapeAdj = 1;
+                            float noiseThreshAdj = 1;
+                            cloudShape2.addPoint(x, y, z, noiseThreshAdj);
+                        }*/
+
+                        /*float noiseThreshAdj = 1;
+                        cloudShape2.addPoint(x, y, z, noiseThreshAdj);*/
 
                     }
                 }
             }
+
+            //how far from a point in the shape to have no threshold adjustment at all
+            int maxDistToZeroAdjust = 6;
+
+            buildShapeThresholds(cloudShape, maxDistToZeroAdjust);
+            buildShapeThresholds(cloudShape2, maxDistToZeroAdjust);
         }
 
-
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < (multiBufferMode ? 1 : cloudCount); i++) {
             /*float radius = 50;
             Vector3f cubePos = new Vector3f((float) (Math.random() * radius - Math.random() * radius),
                     (float) (Math.random() * radius - Math.random() * radius),
@@ -357,32 +423,87 @@ public class CloudRenderHandler {
             cubePos.y = (float) ((Math.round(cubePos.y * 16) / 16F) + Math.random() * 3F);
             cubePos.z = (float) ((Math.round(cubePos.z * 16) / 16F) + Math.random() * 3F);
             renderCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, cubePos, scale);*/
-            buildCloud2(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, scale, cloudShape);
+            buildCloud2(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, scale, cloudShape2);
         }
-
-
 
         return bufferIn.end();
     }
 
-    private void buildCloud2(BufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShape) {
+    private void buildShapeThresholds(Cloud cloudShape, int maxDistToZeroAdjust) {
+        //TODO: should only ever run once (in dev lifetime), as it should be stored/baked to data for use at runtime
+        for (int x = 0; x < cloudShape.getSizeX(); x++) {
+            for (int y = 0; y < cloudShape.getSizeY(); y++) {
+                for (int z = 0; z < cloudShape.getSizeZ(); z++) {
+
+                    float maxDist = 99999;
+
+                    for (int xt = -maxDistToZeroAdjust; xt <= maxDistToZeroAdjust; xt++) {
+                        for (int yt = -maxDistToZeroAdjust; yt <= maxDistToZeroAdjust; yt++) {
+                            for (int zt = -maxDistToZeroAdjust; zt <= maxDistToZeroAdjust; zt++) {
+
+                                int checkX = x + xt;
+                                int checkY = y + yt;
+                                int checkZ = z + zt;
+                                if (xt > 0) {
+                                    int what = 0;
+                                }
+                                //CULog.dbg(checkX + " - " + checkY + " - " + checkZ);
+                                //System.out.println();
+                                if (checkX < 0 || checkX >= cloudShape.getSizeX()) continue;
+                                if (checkY < 0 || checkY >= cloudShape.getSizeY()) continue;
+                                if (checkZ < 0 || checkZ >= cloudShape.getSizeZ()) continue;
+
+                                Cloud.CloudPoint cloudPointAvoidChanging = cloudShape.getPoint(x, y, z);
+                                if (cloudPointAvoidChanging == null || cloudPointAvoidChanging.getShapeAdjustThreshold() != 1) {
+                                    Cloud.CloudPoint cloudPointCheck = cloudShape.getPoint(checkX, checkY, checkZ);
+
+                                    //TODO: for now assuming threshold of 1 = pure shape point, not a distance adjusted one, maybe change this behavior, flag them correctly
+                                    if (cloudPointCheck != null && cloudPointCheck.getShapeAdjustThreshold() == 1) {
+
+                                        float dist = Vector3f.distance(x, y, z, checkX, checkY, checkZ);
+
+                                        if (dist <= maxDist && dist <= maxDistToZeroAdjust) {
+                                            maxDist = dist;
+                                            float distFraction = Mth.clamp(1 - (dist / maxDistToZeroAdjust), 0, 0.99F);
+                                            //distFraction = 0.5F;
+                                            //distFraction = rand.nextFloat() * 0.5F;
+                                            //Cloud.CloudPoint cloudPoint = cloudShape.getPoint(checkX, checkY, checkZ);
+                                            cloudShape.addPoint(x, y, z, distFraction);
+                                        }
+
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    private void buildCloud2(BufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes) {
         //Vector3f cubePos = new Vector3f(0, 0, 0);
 
-        float radius = 100;
+        float radius = 200;
+        //Random rand = new Random();
         Vector3f cubePos = new Vector3f((float) (rand.nextFloat() * radius - rand.nextFloat() * radius),
                 (float) (rand.nextFloat() * 5 - rand.nextFloat() * 5),
                 (float) (rand.nextFloat() * radius - rand.nextFloat() * radius));
 
+        //cubePos = new Vector3f(0, 0, 0);
+
         //int radius = 40;
         //System.out.println("NEW CLOUD");
-        Cloud cloud = new Cloud(20, 20, 20);
+        Cloud cloud = new Cloud(sizeX, sizeY, sizeZ);
         cloud.setCloudShape(cloudShape);
         //cloud.addPoint(0, 0, 1);
         //cloud.addPoint(0, 0, 1);
 
         PerlinNoise perlinNoise = PerlinNoiseHelper.get().getPerlinNoise();
 
-        long time = Minecraft.getInstance().level.getGameTime() * 1;
+        long time = 0;//Minecraft.getInstance().level.getGameTime() * 1;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
             for (int y = 0; y <= cloud.getSizeY(); y++) {
@@ -392,8 +513,9 @@ public class CloudRenderHandler {
             }
         }*/
 
-        float timeShortAdj1 = (this.getTicks()) * 3F;
-        float timeShortAdj2 = (this.getTicks()) * 2F;
+        float timeShortAdj1 = (time) * 1F;
+        float timeShortAdj2 = (time) * 1F;
+        float timeShortAdj3 = (time) * 5F;
 
         int radiusY = 10;
         float maxDistDiag = 34;
@@ -406,32 +528,46 @@ public class CloudRenderHandler {
                     float vecY = distFromCenterY / (cloud.getSizeY() - 3);
                     //require more strict threshold as it gets further from center of cloud
                     //float noiseThreshAdj = (vecXZ + vecY) / 2F * 0.9F;
-                    float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.3F;
+                    float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.8F;
                     int indexX = (int) Math.floor(x + cubePos.x);
                     int indexY = (int) Math.floor(y + cubePos.y);
                     int indexZ = (int) Math.floor(z + cubePos.z);
 
                     //TEMP
-                    noiseThreshAdj = 0.8F;
+                    //noiseThreshAdj = 0.8F;
                     //noiseThreshAdj = 0.3F;
+
+                    float uh = (float) ((Math.sin(timeShortAdj3 * 0.005F) + 1)) * 0.1F;
+                    float uh2 = (float) ((-Math.sin(timeShortAdj3 * 0.005F)));
 
                     //double forceShapeAdj = 0;
                     //forced shape testing, a cross shape ( t )
+                    float shapeAdjThreshold = 0F;
+                    float more = 0.8F;
                     Cloud.CloudPoint cloudPoint = cloudShape.getPoint(x, y, z);
                     if (cloudPoint != null) {
                         //noiseThreshAdj -= (Math.sin(timeShortAdj2 * 0.01F) * 0.5F * cloudPoint.getShapeAdjustThreshold());
-                        noiseThreshAdj -= cloudPoint.getShapeAdjustThreshold();
+                        shapeAdjThreshold -= cloudPoint.getShapeAdjustThreshold() * uh * more;
                         //noiseThreshAdj = 0;
                     }
+                    Cloud.CloudPoint cloudPoint2 = cloudShape2.getPoint(x, y, z);
+                    if (cloudPoint2 != null) {
+                        //noiseThreshAdj -= (Math.sin(timeShortAdj2 * 0.01F) * 0.5F * cloudPoint.getShapeAdjustThreshold());
+                        shapeAdjThreshold -= cloudPoint2.getShapeAdjustThreshold() * uh2 * more;
+                        //noiseThreshAdj = 0;
+                    }
+                    noiseThreshAdj += shapeAdjThreshold;
                     if ((x == cloud.getSizeX() / 2 && y == cloud.getSizeY() / 4 * 3)
                         || (x == cloud.getSizeX() / 2 && z == cloud.getSizeZ() / 2)) {
                         //forceShapeAdj = 1;
                         //noiseThreshAdj -= (0.4 * Math.sin(timeShortAdj2 * 0.01F) * 1.2F);
                     }
 
+                    float mixedThreshold = shapeAdjThreshold;
+
                     //noiseThreshAdj -= 0.2F;
 
-                    noiseThreshAdj += Math.sin(timeShortAdj1 * 0.005F) * 0.4F;
+                    noiseThreshAdj += Math.sin(timeShortAdj1 * 0.015F) * 0.15F;
 
                     double scaleP = 10;
                     double noiseVal = perlinNoise.getValue(((indexX) * scaleP) + time, ((indexY) * scaleP) + time,((indexZ) * scaleP) + time)/* + 0.2F*/;
@@ -448,7 +584,7 @@ public class CloudRenderHandler {
 
         for (Map.Entry<Long, Cloud.CloudPoint> entry : cloud.getLookupCloudPoints().entrySet()) {
             renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
-                    new Vector3f(cubePos.x + entry.getValue().getX(), cubePos.y + entry.getValue().getY(), cubePos.z + entry.getValue().getZ()), scale, entry.getValue().getRenderableSides(), entry.getValue());
+                    new Vector3f(cubePos.x + entry.getValue().getX(), cubePos.y + entry.getValue().getY(), cubePos.z + entry.getValue().getZ()), scale, entry.getValue().getRenderableSides(), entry.getValue(), 0);
         }
 
 
@@ -483,8 +619,10 @@ public class CloudRenderHandler {
         }
     }
 
-    private void renderCloudCube(BufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, Cloud.CloudPoint cloudPoint) {
+    private void renderCloudCube(BufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, Cloud.CloudPoint cloudPoint, float mixedThreshold) {
         Random rand = rand2;
+
+        pointCount++;
 
         Quaternionf q2 = new Quaternionf(0, 0, 0, 1);
         int range = 5;
@@ -504,6 +642,18 @@ public class CloudRenderHandler {
 
         float particleAlpha = 1F;
         //particleAlpha = (float) Math.random();
+
+        float threshold = 0;
+        Cloud.CloudPoint cloudShapePoint = cloudShape2.getPoint(cloudPoint.getX(), cloudPoint.getY(), cloudPoint.getZ());
+        if (cloudShapePoint != null) {
+            threshold = cloudShapePoint.getShapeAdjustThreshold();
+        } else {
+            threshold = rand2.nextFloat();
+            threshold = rand2.nextFloat();
+            threshold = (rand2.nextFloat() * 0.5F);
+            threshold = 0.5F;
+
+        }
 
         for (Direction dir : directions) {
             Quaternionf quaternion = dir.getRotation();
@@ -561,11 +711,6 @@ public class CloudRenderHandler {
             float particleGreen = (float) cloudsColor.y;
             float particleBlue = (float) cloudsColor.z;
 
-            float threshold = 0;
-            Cloud.CloudPoint cloudShapePoint = cloudShape.getPoint(cloudPoint.getX(), cloudPoint.getY(), cloudPoint.getZ());
-            if (cloudShapePoint != null) {
-                threshold = cloudShapePoint.getShapeAdjustThreshold();
-            }
             particleRed = 1F;
             //particleRed = (float) (0.85F + (rand2.nextFloat() * 0.08F));
             /*particleGreen = (float) Math.random();
@@ -577,6 +722,14 @@ public class CloudRenderHandler {
             /*particleGreen = particleRed;
             particleBlue = particleRed;*/
 
+            threshold = 0.7F + (threshold * 0.2F);
+
+            threshold = 0.5F;
+            threshold = 1F;
+
+            particleRed = threshold * 0.9F;
+            particleGreen = threshold * 0.9F;
+            particleBlue = threshold;
 
 
             if (mode_triangles && false) {
@@ -592,6 +745,7 @@ public class CloudRenderHandler {
                 bufferIn.vertex(avector3f3[1].x(), avector3f3[1].y(), avector3f3[1].z()).uv(f8, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
                 bufferIn.vertex(avector3f3[2].x(), avector3f3[2].y(), avector3f3[2].z()).uv(f7, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
                 bufferIn.vertex(avector3f3[3].x(), avector3f3[3].y(), avector3f3[3].z()).uv(f7, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
+                quadCount++;
             }
 
         }
