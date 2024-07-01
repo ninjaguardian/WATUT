@@ -1,4 +1,4 @@
-package com.corosus.watut;
+package com.corosus.watut.cloudRendering;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -6,7 +6,6 @@ import net.minecraft.core.Direction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class Cloud {
 

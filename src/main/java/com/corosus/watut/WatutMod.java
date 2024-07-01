@@ -1,8 +1,10 @@
 package com.corosus.watut;
 
 import com.corosus.modconfig.CoroConfigRegistry;
+import com.corosus.watut.cloudRendering.CloudRenderHandler;
 import com.corosus.watut.config.ConfigClient;
 import com.corosus.watut.config.ConfigCommon;
+import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.server.players.PlayerList;
 
@@ -20,6 +22,8 @@ public abstract class WatutMod
     public static CloudRenderHandler cloudRenderHandler = new CloudRenderHandler();
 
     public static ShaderInstance cloudShader;
+
+    public static ThreadedBufferBuilder threadedBufferBuilder = new ThreadedBufferBuilder(2097152);
 
     public static WatutMod instance() {
         return instance;
