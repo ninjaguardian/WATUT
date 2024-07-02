@@ -1,0 +1,50 @@
+{
+	"name": "dash-compiler",
+	"version": "0.10.11",
+	"description": "A fast compiler for Minecraft Add-Ons",
+	"scripts": {
+		"build:types": "tsc --project tsconfig.json",
+		"build:bundled": "vite --config vite.config.bundled.js build",
+		"build:only": "vite build && npm run build:bundled",
+		"build": "npm run build:only && npm run build:types",
+		"test": "vitest"
+	},
+	"main": "./dist/dash-compiler.umd.js",
+	"module": "./dist/dash-compiler.es.js",
+	"types": "./dist/main.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/dash-compiler.es.js",
+			"require": "./dist/dash-compiler.umd.js"
+		}
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/bridge-core/dash-compiler.git"
+	},
+	"author": "solvedDev",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/bridge-core/dash-compiler/issues"
+	},
+	"homepage": "https://github.com/bridge-core/dash-compiler#readme",
+	"dependencies": {
+		"@swc/wasm-web": "^1.2.218",
+		"bridge-common-utils": "^0.3.0",
+		"bridge-js-runtime": "^0.4.1",
+		"is-glob": "^4.0.3",
+		"json5": "^2.2.0",
+		"mc-project-core": "^0.3.22",
+		"micromatch": "^4.0.4",
+		"molang": "^1.13.11",
+		"path-browserify": "^1.0.1"
+	},
+	"devDependencies": {
+		"@types/is-glob": "^4.0.2",
+		"@types/node": "^16.11.12",
+		"@types/path-browserify": "^1.0.0",
+		"typescript": "^4.5.4",
+		"vite": "^2.6.13",
+		"vitest": "^0.22.1"
+	}
+}
