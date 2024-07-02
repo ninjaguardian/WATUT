@@ -12,11 +12,11 @@ public class ThreadedCloudBuilderJob extends Thread {
 
     @Override
     public void run() {
-        CULog.log("cloud render thread start");
+        //CULog.log("cloud render thread start");
         threadedCloudBuilder.doWork();
         threadedCloudBuilder.setWaitingToUploadData(true);
         threadedCloudBuilder.setRunning(false);
-        CULog.log("cloud render thread complete");
+        //CULog.log("cloud render thread complete");
     }
 
 }

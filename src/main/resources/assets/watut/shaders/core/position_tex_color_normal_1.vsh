@@ -23,6 +23,20 @@ out vec4 normal;
 void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
 
+    vec3 posFloored = floor(Position + 0.2);
+
+    /*if (distance(posFloored, vec3(0, 200, 0)) > 50) {
+        return;
+    }*/
+
+    /*if (distance(Position.y, 0) < 1) {
+        return;
+    }
+
+    if (Position.y < 200) {
+        return;
+    }*/
+
     /*vec3 Light0_Direction_static = vec3(1.0, 1.0, 1.0);
     vec3 Light1_Direction_static = vec3(1.0, 1.0, 1.0);*/
     vec3 Light0_Direction_static = vec3(0.51, 0.85, 0.09);

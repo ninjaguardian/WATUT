@@ -138,6 +138,7 @@ public class ThreadedCloudBuilder {
                 //VertexBuffer cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 float scale = 3;
                 int offsetXZ = (int) (20 * scale) / 2;
+                //offsetXZ = 0;
 
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
                 timeOffset = this.getTicks();
@@ -172,8 +173,8 @@ public class ThreadedCloudBuilder {
             VertexBuffer.unbind();
         }*/
 
-        System.out.println("total clouds point count: " + pointCount);
-        System.out.println("total clouds quad count: " + quadCount);
+        //System.out.println("total clouds point count: " + pointCount);
+        //System.out.println("total clouds quad count: " + quadCount);
     }
 
     private int getTicks() {
@@ -365,8 +366,9 @@ public class ThreadedCloudBuilder {
         //cloud.addPoint(0, 0, 1);
 
         PerlinNoise perlinNoise = PerlinNoiseHelper.get().getPerlinNoise();
-
+        if (Minecraft.getInstance().level == null) return;
         long time = Minecraft.getInstance().level.getGameTime() * 1;
+        time = 0;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
             for (int y = 0; y <= cloud.getSizeY(); y++) {
@@ -516,7 +518,8 @@ public class ThreadedCloudBuilder {
                 vector3f.add((float) dir.getStepX(), (float) dir.getStepY(), (float) dir.getStepZ());
                 if (randRotate) vector3f.rotate(q2);
                 vector3f.mul(scale / 2F);
-                vector3f.add((float) cloudsX + 0.5F, (float) cloudsY, (float) cloudsZ + 0.5F);
+                //vector3f.add((float) cloudsX + 0.5F, (float) cloudsY, (float) cloudsZ + 0.5F);
+                vector3f.add((float) cloudsX + 0.0F, (float) cloudsY, (float) cloudsZ + 0.0F);
                 //vector3f.add((float) 0 + 0.5F, (float) cloudsY, (float) 0 + 0.5F);
                 //vector3f.add((float) cubePos.x, (float) cubePos.y, (float) cubePos.z);
                 vector3f.add((float) cubePos.x * scale, (float) cubePos.y * scale, (float) cubePos.z * scale);

@@ -115,7 +115,7 @@ public class CloudRenderHandler {
             if (this.generateClouds) {
 
                 threadedCloudBuilder.setMultiBufferMode(true);
-                threadedCloudBuilder.setCloudCount(100);
+                threadedCloudBuilder.setCloudCount(150);
 
                 this.generateClouds = false;
 
@@ -138,6 +138,7 @@ public class CloudRenderHandler {
                     threadedCloudBuilder.getRenderableClouds().clear();
                     threadedCloudBuilder.getRenderableClouds().addAll(threadedCloudBuilder.getRenderableCloudsToAdd());
 
+                    System.out.println("============= upload start");
                     for (RenderableCloud renderableCloud : threadedCloudBuilder.getRenderableClouds()) {
                         ThreadedVertexBuffer cloudBuffer = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
                         renderableCloud.setVertexBuffer(cloudBuffer);
@@ -145,6 +146,7 @@ public class CloudRenderHandler {
                         cloudBuffer.upload(renderableCloud.getRenderedBuffer());
                         ThreadedVertexBuffer.unbind();
                     }
+                    System.out.println("=============== upload done");
                     threadedCloudBuilder.setWaitingToUploadData(false);
                 }
             }
@@ -174,6 +176,7 @@ public class CloudRenderHandler {
 
             if (renderClouds) {
                 if (threadedCloudBuilder.isMultiBufferMode()) {
+                    //System.out.println("render start");
                     if (threadedCloudBuilder.getRenderableClouds().size() > 0) {
                         for (RenderableCloud cloudBuffer : threadedCloudBuilder.getRenderableClouds()) {
                             cloudBuffer.getVertexBuffer().bind();
@@ -186,6 +189,7 @@ public class CloudRenderHandler {
                             VertexBuffer.unbind();
                         }
                     }
+                    //System.out.println("render finish");
                 } else {
                     if (threadedCloudBuilder.getCloudBuffer() != null) {
                         threadedCloudBuilder.getCloudBuffer().bind();
