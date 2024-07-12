@@ -2,6 +2,7 @@ package com.corosus.watut.cloudRendering;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,8 +79,11 @@ public class Cloud {
         private int x;
         private int y;
         private int z;
+        //if point has a part/side of its voxel to render
+        private boolean isVisible = false;
         private Cloud cloud;
         private float shapeAdjustThreshold = 0;
+        private float normalizedDistanceToOutside = 1F;
 
         public CloudPoint(int x, int y, int z, Cloud cloud) {
             this.x = x;
@@ -106,6 +110,14 @@ public class Cloud {
 
         public int getZ() {
             return z;
+        }
+
+        public float getNormalizedDistanceToOutside() {
+            return normalizedDistanceToOutside;
+        }
+
+        public void setNormalizedDistanceToOutside(float normalizedDistanceToOutside) {
+            this.normalizedDistanceToOutside = normalizedDistanceToOutside;
         }
 
         @Override
@@ -149,7 +161,52 @@ public class Cloud {
                     }
                 }
             }
+            isVisible = listRenderables.size() > 0;
             return listRenderables;
+        }
+
+        public float calculateNormalizedDistanceToOutside() {
+            if (!isVisible) return 1F;
+            //just 1 axis for now to test creative idea
+            //float maxDist = 4;
+            float maxDist = 4;
+            float maxLookAhead = 15;
+            maxLookAhead = 3;
+            float curDist = 0;
+            for (int xx = 0; xx < maxDist + 1; xx++) {
+                int xCheck = x + 0;
+                int yCheck = y + xx;
+                int zCheck = z + 0;
+                long hash = BlockPos.asLong(xCheck, yCheck, zCheck);
+                if (xCheck >= 0 && xCheck <= cloud.sizeX &&
+                        yCheck >= 0 && yCheck <= cloud.sizeY &&
+                        zCheck >= 0 && zCheck <= cloud.sizeZ) {
+                    if (!lookupCloudPoints.containsKey(hash)) {
+                        boolean stillClear = true;
+                        //if we want spots below an upper portion of the cloud to appear dark, as if blocked by the sun
+                        //for bigger gaps this might not be ideal
+                        for (int xxx = 0; xxx <= maxLookAhead; xxx++) {
+                            int yyCheck = yCheck + xxx;
+                            long hash2 = BlockPos.asLong(xCheck, yyCheck, zCheck);
+                            if (lookupCloudPoints.containsKey(hash2)) {
+                                stillClear = false;
+                                break;
+                            }
+                        }
+                        if (stillClear) {
+                            if (xx < maxDist) {
+                                float dist = Vector3f.distance(x, y, z, xCheck, yCheck, zCheck);
+                                return Math.min(1F, (dist / maxDist));
+                            } else {
+                                return 0.9999F;
+                            }
+                        }
+                    }
+                } else {
+                    return 1F;
+                }
+            }
+            return 1F;
         }
     }
 

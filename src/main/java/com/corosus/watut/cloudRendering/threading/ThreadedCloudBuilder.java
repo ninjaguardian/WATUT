@@ -1,6 +1,5 @@
 package com.corosus.watut.cloudRendering.threading;
 
-import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.*;
 import com.corosus.watut.cloudRendering.Cloud;
 import com.corosus.watut.cloudRendering.RenderableCloud;
@@ -29,6 +28,7 @@ public class ThreadedCloudBuilder {
     private VertexBuffer cloudBuffer;
     private List<RenderableCloud> renderableClouds = new ArrayList<>();
     private List<RenderableCloud> renderableCloudsToAdd = new ArrayList<>();
+    //this set to false isnt supported anymore since adding more features like multithread
     private boolean multiBufferMode = true;
     private int cloudCount = 150;
 
@@ -109,6 +109,30 @@ public class ThreadedCloudBuilder {
         this.cloudCount = cloudCount;
     }
 
+    public int getSizeX() {
+        return sizeX;
+    }
+
+    public void setSizeX(int sizeX) {
+        this.sizeX = sizeX;
+    }
+
+    public int getSizeY() {
+        return sizeY;
+    }
+
+    public void setSizeY(int sizeY) {
+        this.sizeY = sizeY;
+    }
+
+    public int getSizeZ() {
+        return sizeZ;
+    }
+
+    public void setSizeZ(int sizeZ) {
+        this.sizeZ = sizeZ;
+    }
+
     public synchronized void start() {
 
         this.gameTicksAtStart = getTicks();
@@ -136,13 +160,15 @@ public class ThreadedCloudBuilder {
                 RenderableCloud renderableCloud = new RenderableCloud();
                 ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
                 //VertexBuffer cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                float scale = 3;
+                float scale = 4;
+                scale = 1;
                 int offsetXZ = (int) (20 * scale) / 2;
                 //offsetXZ = 0;
 
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
                 timeOffset = this.getTicks();
-                renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale));
+                //renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale));
+                renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, 0, 140, 0, vec3, scale, renderableCloud, ii));
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = ;
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
                 //cloudBuffer.bind();
@@ -189,9 +215,9 @@ public class ThreadedCloudBuilder {
         return (int) getLevelVolatile().getGameTime();
     }
 
-    private ThreadedBufferBuilder.RenderedBuffer renderVBO(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+    private ThreadedBufferBuilder.RenderedBuffer renderVBO(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, RenderableCloud renderableCloud, int cloudIndex) {
         //RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
-        bufferIn.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
+        bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
         //float timeShortAdj2 = (this.getTicks()) * 2F;
 
@@ -203,7 +229,8 @@ public class ThreadedCloudBuilder {
             cloudShapeNeedsPrecalc = false;
 
             sizeX = 40;
-            sizeY = 100;
+            //sizeY = 100;
+            sizeY = 30;
             sizeZ = 40;
 
             cloudShape = new Cloud(sizeX, sizeY, sizeZ);
@@ -278,17 +305,7 @@ public class ThreadedCloudBuilder {
             buildShapeThresholds(cloudShape2, maxDistToZeroAdjust);
         }
 
-        for (int i = 0; i < (multiBufferMode ? 1 : cloudCount); i++) {
-            /*float radius = 50;
-            Vector3f cubePos = new Vector3f((float) (Math.random() * radius - Math.random() * radius),
-                    (float) (Math.random() * radius - Math.random() * radius),
-                    (float) (Math.random() * radius - Math.random() * radius));
-            cubePos.x = (float) ((Math.round(cubePos.x * 16) / 16F) + Math.random() * 3F);
-            cubePos.y = (float) ((Math.round(cubePos.y * 16) / 16F) + Math.random() * 3F);
-            cubePos.z = (float) ((Math.round(cubePos.z * 16) / 16F) + Math.random() * 3F);
-            renderCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, cubePos, scale);*/
-            buildCloud2(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, scale, cloudShape2);
-        }
+        buildCloud(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, scale, cloudShape2, renderableCloud, cloudIndex);
 
         return bufferIn.end();
     }
@@ -347,14 +364,32 @@ public class ThreadedCloudBuilder {
         }
     }
 
-    private void buildCloud2(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes) {
+    private void buildCloud(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes, RenderableCloud renderableCloud, int cloudIndex) {
         //Vector3f cubePos = new Vector3f(0, 0, 0);
 
-        float radius = 150;
+        int columns = (int) Math.sqrt(cloudCount);
+        int rows = cloudCount / columns;
+        int xOffset = cloudIndex % columns;
+        int zOffset = cloudIndex / columns;
+
+        xOffset = xOffset * sizeX;
+        zOffset = zOffset * sizeZ;
+
+        float radius = 350;
+        float radiusYCube = 30;
         //Random rand = new Random();
         Vector3f cubePos = new Vector3f((float) (rand.nextFloat() * radius - rand.nextFloat() * radius),
-                (float) (rand.nextFloat() * 5 - rand.nextFloat() * 5),
+                (float) (rand.nextFloat() * radiusYCube - rand.nextFloat() * radiusYCube),
                 (float) (rand.nextFloat() * radius - rand.nextFloat() * radius));
+
+        //cubePos.mul(scale * 2);
+
+        cubePos = new Vector3f(xOffset, 0, zOffset);
+
+        Vector3f vec = new Vector3f(cubePos);
+        //Random rand4 = new Random();
+        vec.add((float) cloudsX, (float) cloudsY, (float) cloudsZ);
+        renderableCloud.setLightningPos(vec);
 
         //cubePos = new Vector3f(0, 0, 0);
 
@@ -367,8 +402,9 @@ public class ThreadedCloudBuilder {
 
         PerlinNoise perlinNoise = PerlinNoiseHelper.get().getPerlinNoise();
         if (Minecraft.getInstance().level == null) return;
-        long time = Minecraft.getInstance().level.getGameTime() * 1;
-        time = 0;
+        long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
+        time = (long) (Minecraft.getInstance().level.getGameTime() * 1F);
+        //time = 0;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
             for (int y = 0; y <= cloud.getSizeY(); y++) {
@@ -393,7 +429,10 @@ public class ThreadedCloudBuilder {
                     float vecY = distFromCenterY / (cloud.getSizeY() - 3);
                     //require more strict threshold as it gets further from center of cloud
                     //float noiseThreshAdj = (vecXZ + vecY) / 2F * 0.9F;
-                    float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.8F;
+                    //float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.8F;
+                    //float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.2F;
+                    float noiseThreshAdj = 0.5F;//(vecXZ + vecY) / 2F * 1.2F;
+                    //float noiseThreshAdj = (vecXZ + vecY) / 2F * 0.8F;
                     int indexX = (int) Math.floor(x + cubePos.x);
                     int indexY = (int) Math.floor(y + cubePos.y);
                     int indexZ = (int) Math.floor(z + cubePos.z);
@@ -432,7 +471,8 @@ public class ThreadedCloudBuilder {
 
                     //noiseThreshAdj -= 0.2F;
 
-                    noiseThreshAdj += Math.sin(timeShortAdj1 * 0.015F) * 0.15F;
+                    //noiseThreshAdj += Math.sin(timeShortAdj1 * 0.015F) * 0.15F;
+                    //noiseThreshAdj += Math.sin(timeShortAdj1 * 0.015F) * 0.55F;
 
                     double scaleP = 10;
                     double noiseVal = perlinNoise.getValue(((indexX) * scaleP) + time, ((indexY) * scaleP) + time,((indexZ) * scaleP) + time)/* + 0.2F*/;
@@ -448,15 +488,19 @@ public class ThreadedCloudBuilder {
         }
 
         for (Map.Entry<Long, Cloud.CloudPoint> entry : cloud.getLookupCloudPoints().entrySet()) {
+            List<Direction> listRenderables = entry.getValue().getRenderableSides();
+            float dist = entry.getValue().calculateNormalizedDistanceToOutside();
+            entry.getValue().setNormalizedDistanceToOutside(dist);
             renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
-                    new Vector3f(cubePos.x + entry.getValue().getX(), cubePos.y + entry.getValue().getY(), cubePos.z + entry.getValue().getZ()), scale, entry.getValue().getRenderableSides(), entry.getValue(), 0);
+                    new Vector3f(cubePos.x + entry.getValue().getX(), cubePos.y + entry.getValue().getY(), cubePos.z + entry.getValue().getZ())
+                    , scale, listRenderables, entry.getValue(), 0, renderableCloud);
         }
 
 
     }
 
-    private void renderCloudCube(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, Cloud.CloudPoint cloudPoint, float mixedThreshold) {
-        Random rand = rand2;
+    private void renderCloudCube(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, Cloud.CloudPoint cloudPoint, float mixedThreshold, RenderableCloud renderableCloud) {
+        //Random rand = rand2;
 
         pointCount++;
 
@@ -500,8 +544,14 @@ public class ThreadedCloudBuilder {
                     new Vector3f(1.0F, 0.0F, 1.0F),
                     new Vector3f(1.0F, 0.0F, -1.0F)};
 
+            Vector3f[] avector3f32 = new Vector3f[]{
+                    new Vector3f(-1.0F, 0.0F, -1.0F),
+                    new Vector3f(-1.0F, 0.0F, 1.0F),
+                    new Vector3f(1.0F, 0.0F, 1.0F),
+                    new Vector3f(1.0F, 0.0F, -1.0F)};
 
             Vector3f normal = new Vector3f(dir.getNormal().getX(), dir.getNormal().getY(), dir.getNormal().getZ());
+            //normal = new Vector3f(0, 0, 0);
             if (randRotate) normal.rotate(q2);
             float normalRange = 0.1F;
             //normal.mul(normalRange);
@@ -514,13 +564,17 @@ public class ThreadedCloudBuilder {
 
             for(int i = 0; i < 4; ++i) {
                 Vector3f vector3f = avector3f3[i];
+                Vector3f vector3f2 = avector3f32[i];
                 vector3f.rotate(quaternion);
+                vector3f2.rotate(quaternion);
                 vector3f.add((float) dir.getStepX(), (float) dir.getStepY(), (float) dir.getStepZ());
                 if (randRotate) vector3f.rotate(q2);
+                //vector3f.mul(scale * 2);
                 vector3f.mul(scale / 2F);
                 //vector3f.add((float) cloudsX + 0.5F, (float) cloudsY, (float) cloudsZ + 0.5F);
                 vector3f.add((float) cloudsX + 0.0F, (float) cloudsY, (float) cloudsZ + 0.0F);
                 //vector3f.add((float) 0 + 0.5F, (float) cloudsY, (float) 0 + 0.5F);
+                //vector3f.add((float) cubePos.x, (float) cubePos.y, (float) cubePos.z);
                 //vector3f.add((float) cubePos.x, (float) cubePos.y, (float) cubePos.z);
                 vector3f.add((float) cubePos.x * scale, (float) cubePos.y * scale, (float) cubePos.z * scale);
             }
@@ -561,30 +615,65 @@ public class ThreadedCloudBuilder {
 
             threshold = 0.7F + (threshold * 0.2F);
 
-            threshold = 0.5F;
-            threshold = 1F;
+            threshold = 0.93F;
+            threshold = 0.83F;
+            threshold = 0.9F;
+            //threshold = 1F;
+            //threshold = 0.8F;
+            //threshold = 0.2F;
 
-            particleRed = threshold * 0.9F;
-            particleGreen = threshold * 0.9F;
+            float colorShift = 0.82F;
+            colorShift = 0.99F;
+            particleRed = threshold * colorShift;
+            particleGreen = threshold * colorShift;
             particleBlue = threshold;
 
 
-            /*if (mode_triangles && false) {
-                bufferIn.vertex(avector3f3[0].x(), avector3f3[0].y(), avector3f3[0].z()).uv(f8, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-                bufferIn.vertex(avector3f3[3].x(), avector3f3[3].y(), avector3f3[3].z()).uv(f7, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-                bufferIn.vertex(avector3f3[1].x(), avector3f3[1].y(), avector3f3[1].z()).uv(f8, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
+            float impact1 = 0.1F;
+            //float impact1 = 0.0F;
+            float heightFract = (1F - impact1) + ((cubePos.y / (float)(sizeY)) * impact1);
+            //float heightFract = 1F;//1.5F + ((cubePos.y / (float)(sizeY)) * 0.5F);
+            particleRed *= heightFract;
+            particleGreen *= heightFract;
+            particleBlue *= heightFract;
 
-                bufferIn.vertex(avector3f3[3].x(), avector3f3[3].y(), avector3f3[3].z()).uv(f7, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-                bufferIn.vertex(avector3f3[1].x(), avector3f3[1].y(), avector3f3[1].z()).uv(f8, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-                bufferIn.vertex(avector3f3[2].x(), avector3f3[2].y(), avector3f3[2].z()).uv(f7, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-            } else {
+            //float impact2 = 0.1F;
+            //float impact2 = 0.15F;
+            //float impact2 = 0.0F;
+            //moved to shader, keep this 1
+            //float impact2 = 0.15F;
+            float impact2 = 1F;
+            float distToOutsideAdj = (1F - impact2) + cloudPoint.getNormalizedDistanceToOutside() * impact2;//Mth.clamp(1F - cloudPoint.getNormalizedDistanceToOutside(), 0, 1);
+            //distToOutsideAdj = cloudPoint.getNormalizedDistanceToOutside();
+            if (distToOutsideAdj == -1F) {
+                //System.out.println("???????");
+            }
 
-            }*/
+            /*particleRed *= distToOutsideAdj;
+            particleGreen *= distToOutsideAdj;
+            particleBlue *= distToOutsideAdj;*/
 
-            bufferIn.vertex(avector3f3[0].x(), avector3f3[0].y(), avector3f3[0].z()).uv(f8, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-            bufferIn.vertex(avector3f3[1].x(), avector3f3[1].y(), avector3f3[1].z()).uv(f8, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-            bufferIn.vertex(avector3f3[2].x(), avector3f3[2].y(), avector3f3[2].z()).uv(f7, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
-            bufferIn.vertex(avector3f3[3].x(), avector3f3[3].y(), avector3f3[3].z()).uv(f7, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z()).endVertex();
+            particleRed = Math.min(1F, particleRed);
+            particleGreen = Math.min(1F, particleGreen);
+            particleBlue = Math.min(1F, particleBlue);
+
+            float maxDistFromCloudClass = 4F;
+            float distToOutsideHalfBlockAdj = (0.5F / maxDistFromCloudClass) * impact2;
+            //if (distToOutsideAdj != 0) {
+                avector3f32[0].y *= distToOutsideHalfBlockAdj;
+                avector3f32[1].y *= distToOutsideHalfBlockAdj;
+                avector3f32[2].y *= distToOutsideHalfBlockAdj;
+                avector3f32[3].y *= distToOutsideHalfBlockAdj;
+            //}
+
+            bufferIn.vertex(avector3f3[0].x(), avector3f3[0].y(), avector3f3[0].z()).uv(f8, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
+                    .vertex(distToOutsideAdj, avector3f32[0].y(), distToOutsideHalfBlockAdj).endVertex();
+            bufferIn.vertex(avector3f3[1].x(), avector3f3[1].y(), avector3f3[1].z()).uv(f8, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
+                    .vertex(distToOutsideAdj, avector3f32[1].y(), distToOutsideHalfBlockAdj).endVertex();
+            bufferIn.vertex(avector3f3[2].x(), avector3f3[2].y(), avector3f3[2].z()).uv(f7, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
+                    .vertex(distToOutsideAdj, avector3f32[2].y(), distToOutsideHalfBlockAdj).endVertex();
+            bufferIn.vertex(avector3f3[3].x(), avector3f3[3].y(), avector3f3[3].z()).uv(f7, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
+                    .vertex(distToOutsideAdj, avector3f32[3].y(), distToOutsideHalfBlockAdj).endVertex();
             quadCount++;
 
         }

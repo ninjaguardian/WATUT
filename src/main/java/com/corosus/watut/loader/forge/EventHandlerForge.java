@@ -2,9 +2,11 @@ package com.corosus.watut.loader.forge;
 
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
+import com.corosus.watut.cloudRendering.ShaderInstanceCloud;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
@@ -73,7 +75,8 @@ public class EventHandlerForge {
         try {
             System.out.println("register shaders");
             WatutMod.cloudShader = null;
-            WatutMod.cloudShader = new ShaderInstance(event.getResourceProvider(), "watut:position_tex_color_normal_1", DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
+            WatutMod.cloudShader = new ShaderInstanceCloud(event.getResourceProvider(), new ResourceLocation("watut:position_tex_color_normal_1"),
+                    WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
             event.registerShader(WatutMod.cloudShader, (shaderInstance -> {}));
         } catch (IOException e) {
             e.printStackTrace();

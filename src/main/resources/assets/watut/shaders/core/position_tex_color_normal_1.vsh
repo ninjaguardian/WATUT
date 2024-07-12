@@ -7,13 +7,15 @@ in vec3 Position;
 in vec2 UV0;
 in vec4 Color;
 in vec3 Normal;
+in vec3 SunDistNorm;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
 uniform int FogShape;
 
-uniform vec3 Light0_Direction;
-uniform vec3 Light1_Direction;
+uniform vec3 Light0_Direction2;
+uniform vec3 Light1_Direction2;
+uniform vec3 Lightning_Pos;
 
 out vec2 texCoord0;
 out float vertexDistance;
@@ -39,13 +41,47 @@ void main() {
 
     /*vec3 Light0_Direction_static = vec3(1.0, 1.0, 1.0);
     vec3 Light1_Direction_static = vec3(1.0, 1.0, 1.0);*/
-    vec3 Light0_Direction_static = vec3(0.51, 0.85, 0.09);
-    vec3 Light1_Direction_static = vec3(-0.51, 0.61, 0.59);
+    //vec3 Light0_Direction_static = vec3(0.51, 0.85, 0.09);
+    //vec3 Light0_Direction_static = vec3(0, 1, 0);
+    //vec3 Light1_Direction_static = vec3(-0.51, 0.61, 0.59);
+    //vec3 Light1_Direction_static = vec3(0, 1, 0);
 
     texCoord0 = UV0;
     vertexDistance = fog_distance(ModelViewMat, Position, FogShape);
     //vertexDistance = 100F;
     normal = ProjMat * ModelViewMat * vec4(Normal, 0.0);
+    //minimize the impact normals have
+    float normalImpact = 0.5;
+    vec3 normal2 = (Normal * normalImpact) + vec3(normalImpact);
+    //vec3 normal2 = (Normal * 1) + vec3(0);
+    //vec3 normal2 = Normal;
+    //vec3 normal2 = vec3(1, 1, 1);
+    //normal2 = (vec3(1, 1, 1) * 0.9) + normal2;
     //vertexColor = Color;
-    vertexColor = minecraft_mix_light(Light0_Direction_static, Light1_Direction_static, Normal, Color);
+    float sunExposureImpact = 0.15;
+    //float impact2 = 1;
+    float gradientAdj = SunDistNorm.y;
+    //if (SunDistNorm.x == 0.9999) gradientAdj = 0;
+    //if (SunDistNorm.x == 0) gradientAdj = 0;
+    if (SunDistNorm.x == 1.0) gradientAdj = 0;
+    vec4 newColor = Color * ((1 - (SunDistNorm.x * sunExposureImpact)) + (gradientAdj * sunExposureImpact))/* * 3*/;
+    /*newColor.r = max(Color.r, 0);
+    newColor.g = max(Color.g, 0);
+    newColor.b = max(Color.b, 0);*/
+
+    /*newColor.r = max(Color.r, 1);
+    newColor.g = max(Color.g, 1);
+    newColor.b = max(Color.b, 1);*/
+
+    newColor.a = max(Color.a, 0);
+
+    if (Lightning_Pos.y != -999) {
+        if (distance(Lightning_Pos, Position) < 40) {
+            float distFract = 1 - (distance(Lightning_Pos, Position) / 40);
+            newColor.rgb *= 1 + distFract;
+        }
+    }
+    vertexColor = minecraft_mix_light(Light0_Direction2, Light1_Direction2, normal2, newColor);
+    //vertexColor = newColor;
+    //vertexColor = minecraft_mix_light(Light0_Direction_static, Light1_Direction_static, normal2, newColor);
 }
