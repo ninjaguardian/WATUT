@@ -17,7 +17,7 @@ public class SkyChunk {
     private final int y;
     private final int z;
 
-    public static int size = 16;
+    public static int size = 128;
 
     //TODO: we could replace this with what chunks use, look around use to turn x y z into efficient storage by index of CrudeIncrementalIntIdentityHashBiMap and PalletedContainer.Strategy
     private HashMap<Long, SkyChunkPoint> lookupPoints = new HashMap<>();
@@ -148,6 +148,7 @@ public class SkyChunk {
                 int yCheck = y + dir.getStepY();
                 int zCheck = z + dir.getStepZ();
                 long hash = BlockPos.asLong(xCheck, yCheck, zCheck);
+                //TODO: skychunk change, this will cause wasted faces on areas we cant see along skychunk borders, should be fixable by peeking
                 if (xCheck >= 0 && xCheck <= SkyChunk.size &&
                         yCheck >= 0 && yCheck <= SkyChunk.size &&
                         zCheck >= 0 && zCheck <= SkyChunk.size) {
@@ -155,9 +156,9 @@ public class SkyChunk {
                         listRenderables.add(dir);
                     }
                 } else {
-                    /*if (!lookupPoints.containsKey(hash)) {
+                    if (!lookupPoints.containsKey(hash)) {
                         listRenderables.add(dir);
-                    }*/
+                    }
                 }
             }
             isVisible = listRenderables.size() > 0;
