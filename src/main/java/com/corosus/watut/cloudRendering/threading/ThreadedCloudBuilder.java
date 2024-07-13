@@ -3,6 +3,8 @@ package com.corosus.watut.cloudRendering.threading;
 import com.corosus.watut.*;
 import com.corosus.watut.cloudRendering.Cloud;
 import com.corosus.watut.cloudRendering.RenderableCloud;
+import com.corosus.watut.cloudRendering.SkyChunk;
+import com.corosus.watut.cloudRendering.SkyChunkManager;
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -156,29 +158,44 @@ public class ThreadedCloudBuilder {
 
             rand = new Random(5);
 
+            ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
+            float scale = 4;
+            scale = 1;
+            timeOffset = this.getTicks();
+
+            //FIRST WE ITERATE CLOUDS TO PUT INTO SKYCHUNK DATA
+
             for (int ii = 0; ii < cloudCount; ii++) {
 
                 if (rand.nextFloat() <= 0.5F) continue;
 
-                RenderableCloud renderableCloud = new RenderableCloud();
-                ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
+
                 //VertexBuffer cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                float scale = 4;
-                scale = 1;
                 int offsetXZ = (int) (20 * scale) / 2;
                 //offsetXZ = 0;
 
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
-                timeOffset = this.getTicks();
                 //renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale));
-                renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, 0, 140, 0, vec3, scale, renderableCloud, ii));
+                RenderableCloud renderableCloud = null;
+                this.renderVBO(bufferbuilder, 0, 140, 0, vec3, scale, renderableCloud, ii);
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = ;
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
                 //cloudBuffer.bind();
                 //cloudBuffer.upload(bufferbuilder$renderedbuffer);
-                renderableCloudsToAdd.add(renderableCloud);
+
                 //VertexBuffer.unbind();
             }
+
+            //THEN WE RENDER THE SKYCHUNKS INTO VBOS
+            for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
+                RenderableCloud renderableCloud = new RenderableCloud();
+                renderableCloud.setRenderedBuffer(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, 140, 0, vec3, scale));
+                renderableCloudsToAdd.add(renderableCloud);
+            }
+
+            System.out.println("skychunk count: " + SkyChunkManager.instance().getSkyChunks().size());
+
+
         }/* else {
             ThreadedBufferBuilder bufferbuilder = ThreadedTesselator.getInstance().getBuilder();
             if (this.cloudBuffer != null) {
@@ -204,6 +221,25 @@ public class ThreadedCloudBuilder {
 
         //System.out.println("total clouds point count: " + pointCount);
         //System.out.println("total clouds quad count: " + quadCount);
+    }
+
+    private ThreadedBufferBuilder.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+
+        bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
+
+        //TODO: implement hasData or simply remove all data points in skychunk before each new vbo build
+        if (skyChunk.hasData() || true) {
+            for (SkyChunk.SkyChunkPoint entry : skyChunk.getPoints().values()) {
+                List<Direction> listRenderables = entry.getRenderableSides();
+                float dist = entry.calculateNormalizedDistanceToOutside();
+                entry.setNormalizedDistanceToOutside(dist);
+                renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
+                        new Vector3f((skyChunk.getX() * SkyChunk.size) + entry.getX(), (skyChunk.getY() * SkyChunk.size) + entry.getY(), (skyChunk.getZ() * SkyChunk.size) + entry.getZ())
+                        , scale, listRenderables, entry);
+            }
+        }
+
+        return bufferIn.end();
     }
 
     private int getTicks() {
@@ -398,7 +434,8 @@ public class ThreadedCloudBuilder {
         Vector3f vec = new Vector3f(cubePos);
         //Random rand4 = new Random();
         vec.add((float) cloudsX, (float) cloudsY, (float) cloudsZ);
-        renderableCloud.setLightningPos(vec);
+        //TODO: skychunk relocate me
+        //renderableCloud.setLightningPos(vec);
 
         //cubePos = new Vector3f(0, 0, 0);
 
@@ -490,7 +527,9 @@ public class ThreadedCloudBuilder {
                     double noiseVal = perlinNoise.getValue(((indexX) * scaleP) + time, ((indexY) * scaleP) + time,((indexZ) * scaleP) + time)/* + 0.2F*/;
                     //noiseVal = 0.2F;
                     if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
-                        cloud.addPoint(x, y, z);
+                        //SkyChunkManager.instance().
+                        //cloud.addPoint(x, y, z);
+                        SkyChunkManager.instance().addPoint(indexX, indexY, indexZ);
                     }
                     /*if (vec < 0.80) {
                         cloud.addPoint(x, y, z);
@@ -499,19 +538,17 @@ public class ThreadedCloudBuilder {
             }
         }
 
-        for (Map.Entry<Long, Cloud.CloudPoint> entry : cloud.getLookupCloudPoints().entrySet()) {
+        /*for (Map.Entry<Long, Cloud.CloudPoint> entry : cloud.getLookupCloudPoints().entrySet()) {
             List<Direction> listRenderables = entry.getValue().getRenderableSides();
             float dist = entry.getValue().calculateNormalizedDistanceToOutside();
             entry.getValue().setNormalizedDistanceToOutside(dist);
             renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
                     new Vector3f(cubePos.x + entry.getValue().getX(), cubePos.y + entry.getValue().getY(), cubePos.z + entry.getValue().getZ())
                     , scale, listRenderables, entry.getValue(), 0, renderableCloud);
-        }
-
-
+        }*/
     }
 
-    private void renderCloudCube(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, Cloud.CloudPoint cloudPoint, float mixedThreshold, RenderableCloud renderableCloud) {
+    private void renderCloudCube(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, SkyChunk.SkyChunkPoint cloudPoint) {
         //Random rand = rand2;
 
         pointCount++;
@@ -536,6 +573,7 @@ public class ThreadedCloudBuilder {
         //particleAlpha = (float) Math.random();
 
         float threshold = 0;
+        //TODO: BAD CODE NOW since skychunk change, redesign/relocate
         Cloud.CloudPoint cloudShapePoint = cloudShape2.getPoint(cloudPoint.getX(), cloudPoint.getY(), cloudPoint.getZ());
         if (cloudShapePoint != null) {
             threshold = cloudShapePoint.getShapeAdjustThreshold();
