@@ -1,5 +1,6 @@
 package com.corosus.watut.cloudRendering;
 
+import com.corosus.coroutil.util.CULog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.joml.Vector3f;
@@ -23,10 +24,18 @@ public class SkyChunk {
 
     private boolean hasData = false;
 
+    private RenderableData renderableData;
+
     public SkyChunk(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
+        //CULog.log("SkyChunk at " + );
+        renderableData = new RenderableData();
+    }
+
+    public RenderableData getRenderableData() {
+        return renderableData;
     }
 
     public int getX() {

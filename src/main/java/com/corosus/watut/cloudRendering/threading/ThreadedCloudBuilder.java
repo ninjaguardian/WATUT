@@ -1,8 +1,9 @@
 package com.corosus.watut.cloudRendering.threading;
 
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.*;
 import com.corosus.watut.cloudRendering.Cloud;
-import com.corosus.watut.cloudRendering.RenderableCloud;
+import com.corosus.watut.cloudRendering.RenderableData;
 import com.corosus.watut.cloudRendering.SkyChunk;
 import com.corosus.watut.cloudRendering.SkyChunkManager;
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
@@ -17,9 +18,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 public class ThreadedCloudBuilder {
@@ -27,9 +26,8 @@ public class ThreadedCloudBuilder {
     private Random rand = new Random();
     private Random rand2 = new Random();
 
-    private VertexBuffer cloudBuffer;
-    private List<RenderableCloud> renderableClouds = new ArrayList<>();
-    private List<RenderableCloud> renderableCloudsToAdd = new ArrayList<>();
+    //private List<RenderableData> renderableData = new ArrayList<>();
+    //private List<RenderableData> renderableCloudsToAdd = new ArrayList<>();
     //this set to false isnt supported anymore since adding more features like multithread
     private boolean multiBufferMode = true;
     private int cloudCount = 150;
@@ -42,6 +40,8 @@ public class ThreadedCloudBuilder {
     private int sizeX = 30;
     private int sizeY = 20;
     private int sizeZ = 30;
+
+    private int cloudsY = 140;
 
     private Cloud cloudShape = new Cloud(sizeX, sizeY, sizeZ);
     private Cloud cloudShape2 = new Cloud(sizeX, sizeY, sizeZ);
@@ -71,29 +71,21 @@ public class ThreadedCloudBuilder {
         isWaitingToUploadData = waitingToUploadData;
     }
 
-    public VertexBuffer getCloudBuffer() {
-        return cloudBuffer;
+    /*public List<RenderableData> getRenderableClouds() {
+        return renderableData;
     }
 
-    public void setCloudBuffer(VertexBuffer cloudBuffer) {
-        this.cloudBuffer = cloudBuffer;
+    public void setRenderableClouds(List<RenderableData> renderableData) {
+        this.renderableData = renderableData;
     }
 
-    public List<RenderableCloud> getRenderableClouds() {
-        return renderableClouds;
-    }
-
-    public void setRenderableClouds(List<RenderableCloud> renderableClouds) {
-        this.renderableClouds = renderableClouds;
-    }
-
-    public List<RenderableCloud> getRenderableCloudsToAdd() {
+    public List<RenderableData> getRenderableCloudsToAdd() {
         return renderableCloudsToAdd;
     }
 
-    public void setRenderableCloudsToAdd(List<RenderableCloud> renderableCloudsToAdd) {
+    public void setRenderableCloudsToAdd(List<RenderableData> renderableCloudsToAdd) {
         this.renderableCloudsToAdd = renderableCloudsToAdd;
-    }
+    }*/
 
     public boolean isMultiBufferMode() {
         return multiBufferMode;
@@ -135,6 +127,14 @@ public class ThreadedCloudBuilder {
         this.sizeZ = sizeZ;
     }
 
+    public int getCloudsY() {
+        return cloudsY;
+    }
+
+    public void setCloudsY(int cloudsY) {
+        this.cloudsY = cloudsY;
+    }
+
     public synchronized void start() {
 
         this.gameTicksAtStart = getTicks();
@@ -153,8 +153,8 @@ public class ThreadedCloudBuilder {
 
         if (multiBufferMode) {
             //TODO: REUSE THE BUFFERS, STOP MAKING NEW ONES
-            //renderableClouds.clear();
-            renderableCloudsToAdd.clear();
+            ////renderableClouds.clear();
+            //renderableCloudsToAdd.clear();
 
             rand = new Random(5);
 
@@ -163,12 +163,16 @@ public class ThreadedCloudBuilder {
             scale = 1;
             timeOffset = this.getTicks();
 
+            //clear out old skychunk data
+            for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
+                skyChunk.getPoints().clear();
+            }
+
             //FIRST WE ITERATE CLOUDS TO PUT INTO SKYCHUNK DATA
 
             for (int ii = 0; ii < cloudCount; ii++) {
 
                 if (rand.nextFloat() <= 0.5F) continue;
-
 
                 //VertexBuffer cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 int offsetXZ = (int) (20 * scale) / 2;
@@ -176,8 +180,8 @@ public class ThreadedCloudBuilder {
 
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
                 //renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale));
-                RenderableCloud renderableCloud = null;
-                this.renderVBO(bufferbuilder, 0, 140, 0, vec3, scale, renderableCloud, ii);
+                RenderableData renderableData = null;
+                this.generateCloud(bufferbuilder, 0, cloudsY, 0, vec3, scale, renderableData, ii);
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = ;
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
                 //cloudBuffer.bind();
@@ -187,13 +191,12 @@ public class ThreadedCloudBuilder {
             }
 
             //THEN WE RENDER THE SKYCHUNKS INTO VBOS
+
             for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
-                RenderableCloud renderableCloud = new RenderableCloud();
-                renderableCloud.setRenderedBuffer(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, 140, 0, vec3, scale));
-                renderableCloudsToAdd.add(renderableCloud);
+                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
             }
 
-            System.out.println("skychunk count: " + SkyChunkManager.instance().getSkyChunks().size());
+            //System.out.println("skychunk count: " + SkyChunkManager.instance().getSkyChunks().size());
 
 
         }/* else {
@@ -219,8 +222,8 @@ public class ThreadedCloudBuilder {
             VertexBuffer.unbind();
         }*/
 
-        //System.out.println("total clouds point count: " + pointCount);
-        //System.out.println("total clouds quad count: " + quadCount);
+        CULog.log("total clouds point count: " + pointCount);
+        CULog.log("total clouds quad count: " + quadCount);
     }
 
     private ThreadedBufferBuilder.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
@@ -254,9 +257,9 @@ public class ThreadedCloudBuilder {
         return (int) getLevelVolatile().getGameTime();
     }
 
-    private ThreadedBufferBuilder.RenderedBuffer renderVBO(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, RenderableCloud renderableCloud, int cloudIndex) {
+    private void generateCloud(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, RenderableData renderableData, int cloudIndex) {
         //RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
-        bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
+        //bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
         //float timeShortAdj2 = (this.getTicks()) * 2F;
 
@@ -265,12 +268,8 @@ public class ThreadedCloudBuilder {
         }
 
         if (cloudShapeNeedsPrecalc) {
+            CULog.log("performing one time cloud shape precalc");
             cloudShapeNeedsPrecalc = false;
-
-            sizeX = 40;
-            //sizeY = 100;
-            sizeY = 30;
-            sizeZ = 40;
 
             cloudShape = new Cloud(sizeX, sizeY, sizeZ);
 
@@ -342,11 +341,11 @@ public class ThreadedCloudBuilder {
 
             buildShapeThresholds(cloudShape, maxDistToZeroAdjust);
             buildShapeThresholds(cloudShape2, maxDistToZeroAdjust);
+
+            CULog.log("finished one time cloud shape precalc");
         }
 
-        buildCloud(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, scale, cloudShape2, renderableCloud, cloudIndex);
-
-        return bufferIn.end();
+        buildCloud(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor, scale, cloudShape2, renderableData, cloudIndex);
     }
 
     private void buildShapeThresholds(Cloud cloudShape, int maxDistToZeroAdjust) {
@@ -403,7 +402,7 @@ public class ThreadedCloudBuilder {
         }
     }
 
-    private void buildCloud(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes, RenderableCloud renderableCloud, int cloudIndex) {
+    private void buildCloud(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes, RenderableData renderableData, int cloudIndex) {
         //Vector3f cubePos = new Vector3f(0, 0, 0);
 
 

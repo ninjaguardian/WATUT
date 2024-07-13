@@ -3,10 +3,11 @@ package com.corosus.watut.cloudRendering;
 import net.minecraft.core.BlockPos;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SkyChunkManager {
 
-    private HashMap<Long, SkyChunk> lookupSkyChunks = new HashMap<>();
+    private ConcurrentHashMap<Long, SkyChunk> lookupSkyChunks = new ConcurrentHashMap<>();
 
     private static SkyChunkManager skyChunkManager;
 
@@ -17,7 +18,6 @@ public class SkyChunkManager {
         return skyChunkManager;
     }
 
-    //TODO: should be chunk coords?
     public SkyChunk getSkyChunk(int skyChunkPosX, int skyChunkPosY, int skyChunkPosZ) {
         long hash = BlockPos.asLong(skyChunkPosX, skyChunkPosY, skyChunkPosZ);
         if (!lookupSkyChunks.containsKey(hash)) {
@@ -28,8 +28,13 @@ public class SkyChunkManager {
         return lookupSkyChunks.get(hash);
     }
 
-    public HashMap<Long, SkyChunk> getSkyChunks() {
+    public ConcurrentHashMap<Long, SkyChunk> getSkyChunks() {
         return lookupSkyChunks;
+    }
+
+    public long getPoint(int blockPosX, int blockPosY, int blockPosZ) {
+        SkyChunk skyChunk = getSkyChunk(blockPosX >> 4, blockPosY >> 4, blockPosZ >> 4);
+        return skyChunk.addPoint(blockPosX & (SkyChunk.size - 1), blockPosY & (SkyChunk.size - 1), blockPosZ & (SkyChunk.size - 1));
     }
 
     public long addPoint(int blockPosX, int blockPosY, int blockPosZ) {
