@@ -117,7 +117,7 @@ public class CloudRenderHandler {
                 //System.out.println("gen clouds " + getTicks());
 
                 threadedCloudBuilder.setMultiBufferMode(true);
-                threadedCloudBuilder.setCloudCount(25);
+                threadedCloudBuilder.setCloudCount(20 * 20);
 
                 this.generateClouds = false;
 
@@ -201,7 +201,7 @@ public class CloudRenderHandler {
 
                             RenderSystem.colorMask(true, true, true, true);
 
-                            if (rand3.nextFloat() > 0.993F) {
+                            if (rand3.nextFloat() > 0.993F && false) {
                                 Vector3f vec = new Vector3f(cloudBuffer.getLightningPos());
                                 vec.add(rand3.nextFloat() * threadedCloudBuilder.getSizeX(), rand3.nextFloat() * threadedCloudBuilder.getSizeY()/* + rand3.nextFloat(80)*/, rand3.nextFloat() * threadedCloudBuilder.getSizeZ());
                                 WatutMod.cloudShader.LIGHTNING_POS.set(vec);

@@ -157,6 +157,9 @@ public class ThreadedCloudBuilder {
             rand = new Random(5);
 
             for (int ii = 0; ii < cloudCount; ii++) {
+
+                if (rand.nextFloat() <= 0.5F) continue;
+
                 RenderableCloud renderableCloud = new RenderableCloud();
                 ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
                 //VertexBuffer cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
@@ -367,8 +370,14 @@ public class ThreadedCloudBuilder {
     private void buildCloud(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes, RenderableCloud renderableCloud, int cloudIndex) {
         //Vector3f cubePos = new Vector3f(0, 0, 0);
 
+
+
         int columns = (int) Math.sqrt(cloudCount);
         int rows = cloudCount / columns;
+
+        columns = 20;
+        rows = 20;
+
         int xOffset = cloudIndex % columns;
         int zOffset = cloudIndex / columns;
 
@@ -403,7 +412,9 @@ public class ThreadedCloudBuilder {
         PerlinNoise perlinNoise = PerlinNoiseHelper.get().getPerlinNoise();
         if (Minecraft.getInstance().level == null) return;
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
-        time = (long) (Minecraft.getInstance().level.getGameTime() * 1F);
+        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
+        //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.8F);
+        time += (cloudIndex * 25);
         //time = 0;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
@@ -429,9 +440,9 @@ public class ThreadedCloudBuilder {
                     float vecY = distFromCenterY / (cloud.getSizeY() - 3);
                     //require more strict threshold as it gets further from center of cloud
                     //float noiseThreshAdj = (vecXZ + vecY) / 2F * 0.9F;
-                    //float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.8F;
+                    float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.8F;
                     //float noiseThreshAdj = (vecXZ + vecY) / 2F * 1.2F;
-                    float noiseThreshAdj = 0.5F;//(vecXZ + vecY) / 2F * 1.2F;
+                    //float noiseThreshAdj = 0.5F;//(vecXZ + vecY) / 2F * 1.2F;
                     //float noiseThreshAdj = (vecXZ + vecY) / 2F * 0.8F;
                     int indexX = (int) Math.floor(x + cubePos.x);
                     int indexY = (int) Math.floor(y + cubePos.y);
@@ -472,6 +483,7 @@ public class ThreadedCloudBuilder {
                     //noiseThreshAdj -= 0.2F;
 
                     //noiseThreshAdj += Math.sin(timeShortAdj1 * 0.015F) * 0.15F;
+                    noiseThreshAdj += Math.sin(timeShortAdj1 * 0.015F) * 0.22F;
                     //noiseThreshAdj += Math.sin(timeShortAdj1 * 0.015F) * 0.55F;
 
                     double scaleP = 10;
