@@ -155,9 +155,9 @@ public class SkyChunk {
                         listRenderables.add(dir);
                     }
                 } else {
-                    if (!lookupPoints.containsKey(hash)) {
+                    /*if (!lookupPoints.containsKey(hash)) {
                         listRenderables.add(dir);
-                    }
+                    }*/
                 }
             }
             isVisible = listRenderables.size() > 0;

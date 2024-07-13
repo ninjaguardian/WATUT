@@ -224,6 +224,7 @@ public class ThreadedCloudBuilder {
 
         CULog.log("total clouds point count: " + pointCount);
         CULog.log("total clouds quad count: " + quadCount);
+        CULog.log("total vbos count: " + SkyChunkManager.instance().getSkyChunks().size());
     }
 
     private ThreadedBufferBuilder.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
@@ -451,7 +452,7 @@ public class ThreadedCloudBuilder {
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.8F);
         time += (cloudIndex * 25);
-        //time = 0;
+        time = 0;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
             for (int y = 0; y <= cloud.getSizeY(); y++) {
