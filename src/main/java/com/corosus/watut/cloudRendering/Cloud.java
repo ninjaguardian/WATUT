@@ -126,12 +126,7 @@ public class Cloud {
             if (o == null || getClass() != o.getClass()) return false;
             CloudPoint that = (CloudPoint) o;
             return x == that.x && y == that.y && z == that.z;
-        }/*
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, y, z);
-        }*/
+        }
 
         @Override
         public String toString() {
@@ -140,73 +135,6 @@ public class Cloud {
                     ", y=" + y +
                     ", z=" + z +
                     '}';
-        }
-
-        public List<Direction> getRenderableSides() {
-            List<Direction> listRenderables = new ArrayList<>();
-            for (Direction dir : Direction.values()) {
-                int xCheck = x + dir.getStepX();
-                int yCheck = y + dir.getStepY();
-                int zCheck = z + dir.getStepZ();
-                long hash = BlockPos.asLong(xCheck, yCheck, zCheck);
-                if (xCheck >= 0 && xCheck <= cloud.sizeX &&
-                        yCheck >= 0 && yCheck <= cloud.sizeY &&
-                        zCheck >= 0 && zCheck <= cloud.sizeZ) {
-                    if (!lookupCloudPoints.containsKey(hash)) {
-                        listRenderables.add(dir);
-                    }
-                } else {
-                    if (!lookupCloudPoints.containsKey(hash)) {
-                        listRenderables.add(dir);
-                    }
-                }
-            }
-            isVisible = listRenderables.size() > 0;
-            return listRenderables;
-        }
-
-        public float calculateNormalizedDistanceToOutside() {
-            if (!isVisible) return 1F;
-            //just 1 axis for now to test creative idea
-            //float maxDist = 4;
-            float maxDist = 4;
-            float maxLookAhead = 15;
-            maxLookAhead = 3;
-            float curDist = 0;
-            for (int xx = 0; xx < maxDist + 1; xx++) {
-                int xCheck = x + 0;
-                int yCheck = y + xx;
-                int zCheck = z + 0;
-                long hash = BlockPos.asLong(xCheck, yCheck, zCheck);
-                if (xCheck >= 0 && xCheck <= cloud.sizeX &&
-                        yCheck >= 0 && yCheck <= cloud.sizeY &&
-                        zCheck >= 0 && zCheck <= cloud.sizeZ) {
-                    if (!lookupCloudPoints.containsKey(hash)) {
-                        boolean stillClear = true;
-                        //if we want spots below an upper portion of the cloud to appear dark, as if blocked by the sun
-                        //for bigger gaps this might not be ideal
-                        for (int xxx = 0; xxx <= maxLookAhead; xxx++) {
-                            int yyCheck = yCheck + xxx;
-                            long hash2 = BlockPos.asLong(xCheck, yyCheck, zCheck);
-                            if (lookupCloudPoints.containsKey(hash2)) {
-                                stillClear = false;
-                                break;
-                            }
-                        }
-                        if (stillClear) {
-                            if (xx < maxDist) {
-                                float dist = Vector3f.distance(x, y, z, xCheck, yCheck, zCheck);
-                                return Math.min(1F, (dist / maxDist));
-                            } else {
-                                return 0.9999F;
-                            }
-                        }
-                    }
-                } else {
-                    return 1F;
-                }
-            }
-            return 1F;
         }
     }
 

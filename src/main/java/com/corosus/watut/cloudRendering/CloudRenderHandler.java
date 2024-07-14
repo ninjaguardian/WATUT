@@ -100,9 +100,9 @@ public class CloudRenderHandler {
 
 
             if (!threadedCloudBuilder.isRunning() && !threadedCloudBuilder.isWaitingToUploadData()) {
-                //if (getTicks() % (20 * 5) == 0) {
+                if (getTicks() % (20 * 5) == 0) {
                     generateClouds = true;
-                //}
+                }
             }
 
             Vec3 pos = Minecraft.getInstance().cameraEntity.position();
@@ -113,10 +113,15 @@ public class CloudRenderHandler {
 
                 threadedCloudBuilder.setMultiBufferMode(true);
                 threadedCloudBuilder.setCloudCount(20 * 20);
+                threadedCloudBuilder.setCloudCount(10 * 10);
+                //threadedCloudBuilder.setCloudCount(5 * 5);
+                //threadedCloudBuilder.setCloudCount(1);
 
                 threadedCloudBuilder.setSizeX(40);
                 threadedCloudBuilder.setSizeY(30);
                 threadedCloudBuilder.setSizeZ(40);
+
+                threadedCloudBuilder.setCloudsY(200);
 
                 //initSkyChunksForGrid();
 
@@ -162,7 +167,7 @@ public class CloudRenderHandler {
                         //renderableData.swapBuffers();
                         renderableData.getActiveRenderingVertexBuffer().bind();
                         renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
-                        skyChunk.setHasData(true);
+                        skyChunk.setInitialized(true);
                         ThreadedVertexBuffer.unbind();
 
                     }
@@ -243,7 +248,7 @@ public class CloudRenderHandler {
                     for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
                         RenderableData renderableData = skyChunk.getRenderableData();
 
-                        if (skyChunk.hasData()) {
+                        if (skyChunk.isInitialized()) {
                             renderableData.getActiveRenderingVertexBuffer().bind();
 
                             RenderSystem.colorMask(true, true, true, true);

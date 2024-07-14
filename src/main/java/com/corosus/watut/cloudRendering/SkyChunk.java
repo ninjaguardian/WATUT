@@ -1,6 +1,5 @@
 package com.corosus.watut.cloudRendering;
 
-import com.corosus.coroutil.util.CULog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.joml.Vector3f;
@@ -22,7 +21,8 @@ public class SkyChunk {
     //TODO: we could replace this with what chunks use, look around use to turn x y z into efficient storage by index of CrudeIncrementalIntIdentityHashBiMap and PalletedContainer.Strategy
     private HashMap<Long, SkyChunkPoint> lookupPoints = new HashMap<>();
 
-    private boolean hasData = false;
+    //tells main thread that it can be safely used
+    private boolean isInitialized = false;
 
     private RenderableData renderableData;
 
@@ -54,12 +54,12 @@ public class SkyChunk {
         return lookupPoints;
     }
 
-    public boolean hasData() {
-        return hasData;
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
-    public void setHasData(boolean hasData) {
-        this.hasData = hasData;
+    public void setInitialized(boolean initialized) {
+        this.isInitialized = initialized;
     }
 
     public SkyChunkPoint getPoint(int x, int y, int z) {

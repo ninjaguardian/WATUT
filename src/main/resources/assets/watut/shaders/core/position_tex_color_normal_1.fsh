@@ -112,6 +112,7 @@ void main() {
     float rand = rand(texCoord0);
 
     fragColor = color;//linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+    //fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
     //fragColor.w *= rand;
     //fragColor = testReturn;
     //vec4 test2 = mainImage(test);
