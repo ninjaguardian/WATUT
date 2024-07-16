@@ -1,15 +1,19 @@
 package com.corosus.watut.loader.forge;
 
 import com.corosus.watut.WatutMod;
+import com.corosus.watut.cloudRendering.SkyChunkManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.server.players.PlayerList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -26,7 +30,9 @@ public class WatutModForge extends WatutMod {
         modEventBus.addListener(this::setup);
         modEventBus.addListener(this::gatherData);
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new EventHandlerForge());
+        MinecraftForge.EVENT_BUS.register(new EventHandlerForge2());
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(EventHandlerForge::getRegisteredParticles);
         }

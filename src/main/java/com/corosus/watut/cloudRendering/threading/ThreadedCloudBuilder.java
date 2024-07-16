@@ -55,6 +55,9 @@ public class ThreadedCloudBuilder {
 
     private ThreadedCloudBuilderJob threadedCloudBuilderJob;
 
+    //if i split vbo building into multiple threads this needs to change
+    Vec3 camVec = Vec3.ZERO;
+
     public synchronized boolean isRunning() {
         return isRunning;
     }
@@ -69,6 +72,14 @@ public class ThreadedCloudBuilder {
 
     public synchronized void setWaitingToUploadData(boolean waitingToUploadData) {
         isWaitingToUploadData = waitingToUploadData;
+    }
+
+    public Vec3 getCamVec() {
+        return camVec;
+    }
+
+    public void setCamVec(Vec3 camVec) {
+        this.camVec = camVec;
     }
 
     /*public List<RenderableData> getRenderableClouds() {
@@ -166,6 +177,7 @@ public class ThreadedCloudBuilder {
 
             //clear out old skychunk data
             for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
+                skyChunk.setBeingBuilt(true);
                 skyChunk.getPoints().clear();
             }
 
@@ -192,11 +204,14 @@ public class ThreadedCloudBuilder {
             }
 
             //new algo cloud step
-            generateAlgoCloud(bufferbuilder, 0, cloudsY, 0, vec3, scale);
+            //generateAlgoCloud(bufferbuilder, 0, cloudsY, 0, vec3, scale);
 
             //THEN WE RENDER THE SKYCHUNKS INTO VBOS
 
             for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
+                Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
+                this.setCamVec(vecCam);
+                skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
                 skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
             }
 
@@ -454,7 +469,7 @@ public class ThreadedCloudBuilder {
 
         columns = 20;
         columns = 10;
-        //columns = 5;
+        //columns = 1;
         rows = 20;
 
         int xOffset = cloudIndex % columns;
@@ -472,11 +487,11 @@ public class ThreadedCloudBuilder {
 
         //cubePos.mul(scale * 2);
 
-        cubePos = new Vector3f(xOffset, 0, zOffset);
+        cubePos = new Vector3f(xOffset + Mth.floor(cloudsX), Mth.floor(cloudsY), zOffset + Mth.floor(cloudsZ));
 
-        Vector3f vec = new Vector3f(cubePos);
+        //Vector3f vec = new Vector3f(cubePos);
         //Random rand4 = new Random();
-        vec.add((float) cloudsX, (float) cloudsY, (float) cloudsZ);
+        //vec.add((float) cloudsX, (float) cloudsY, (float) cloudsZ);
         //TODO: skychunk relocate me
         //renderableCloud.setLightningPos(vec);
 
@@ -666,11 +681,14 @@ public class ThreadedCloudBuilder {
                 //vector3f.mul(scale * 2);
                 vector3f.mul(scale / 2F);
                 //vector3f.add((float) cloudsX + 0.5F, (float) cloudsY, (float) cloudsZ + 0.5F);
-                vector3f.add((float) cloudsX + 0.0F, (float) cloudsY, (float) cloudsZ + 0.0F);
+                //vector3f.add((float) cloudsX + 0.0F, (float) cloudsY, (float) cloudsZ + 0.0F);
                 //vector3f.add((float) 0 + 0.5F, (float) cloudsY, (float) 0 + 0.5F);
                 //vector3f.add((float) cubePos.x, (float) cubePos.y, (float) cubePos.z);
                 //vector3f.add((float) cubePos.x, (float) cubePos.y, (float) cubePos.z);
                 vector3f.add((float) cubePos.x * scale, (float) cubePos.y * scale, (float) cubePos.z * scale);
+
+                //TODO: test to prep for fog / relative render fix
+                vector3f.add((float) -camVec.x(), (float) -camVec.y(), (float) -camVec.z());
             }
 
             //TextureAtlasSprite sprite = ParticleRegistry.cloud_square;

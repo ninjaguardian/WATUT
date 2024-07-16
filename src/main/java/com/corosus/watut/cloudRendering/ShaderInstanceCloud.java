@@ -14,6 +14,8 @@ public class ShaderInstanceCloud extends ShaderInstance {
     @Nullable
     public final Uniform LIGHTNING_POS;
     @Nullable
+    public final Uniform VBO_RENDER_POS;
+    @Nullable
     public final Uniform LIGHT0_DIRECTION2;
     @Nullable
     public final Uniform LIGHT1_DIRECTION2;
@@ -21,6 +23,7 @@ public class ShaderInstanceCloud extends ShaderInstance {
     public ShaderInstanceCloud(ResourceProvider p_173336_, ResourceLocation shaderLocation, VertexFormat p_173338_) throws IOException {
         super(p_173336_, shaderLocation, p_173338_);
         this.LIGHTNING_POS = this.getUniform("Lightning_Pos");
+        this.VBO_RENDER_POS = this.getUniform("VBO_Render_Pos");
         this.LIGHT0_DIRECTION2 = this.getUniform("Light0_Direction2");
         this.LIGHT1_DIRECTION2 = this.getUniform("Light0_Direction2");
     }

@@ -4,18 +4,19 @@ import net.minecraft.core.BlockPos;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SkyChunkManager {
+//to be used off main thread
+public class SkyChunkBuilderManager {
 
     //TODO: consider making a full copy of this, would be the multi thread safe future proofed solution
     //theres scenarios where i need the old data while thread has nuked it to build new set
     //eg: checking if in cloud
     private ConcurrentHashMap<Long, SkyChunk> lookupSkyChunks = new ConcurrentHashMap<>();
 
-    private static SkyChunkManager skyChunkManager;
+    private static SkyChunkBuilderManager skyChunkManager;
 
-    public static SkyChunkManager instance() {
+    public static SkyChunkBuilderManager instance() {
         if (skyChunkManager == null) {
-            skyChunkManager = new SkyChunkManager();
+            skyChunkManager = new SkyChunkBuilderManager();
         }
         return skyChunkManager;
     }

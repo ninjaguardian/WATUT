@@ -1,5 +1,6 @@
 package com.corosus.watut.cloudRendering;
 
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.cloudRendering.threading.ThreadedCloudBuilder;
@@ -11,8 +12,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -121,7 +124,8 @@ public class CloudRenderHandler {
                 threadedCloudBuilder.setSizeY(30);
                 threadedCloudBuilder.setSizeZ(40);
 
-                threadedCloudBuilder.setCloudsY(200);
+                int scale = 4;
+                threadedCloudBuilder.setCloudsY(200 / scale);
 
                 //initSkyChunksForGrid();
 
@@ -168,6 +172,8 @@ public class CloudRenderHandler {
                         renderableData.getActiveRenderingVertexBuffer().bind();
                         renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
                         skyChunk.setInitialized(true);
+                        skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
+                        skyChunk.setBeingBuilt(false);
                         ThreadedVertexBuffer.unbind();
 
                     }
@@ -209,7 +215,9 @@ public class CloudRenderHandler {
             //p_254145_.scale(3.0F, 3.0F, 3.0F);
             //p_254145_.scale(10.0F, 10.0F, 10.0F);
             //p_254145_.translate(-f3, f4, -f5);
-            p_254145_.translate(-p_253843_, -p_253663_, -p_253795_);
+
+            //TODO: remove use
+            //p_254145_.translate(-p_253843_, -p_253663_, -p_253795_);
 
             float timeShort = (this.getTicks() % (20 * 30)) * 3F;
 
@@ -248,10 +256,19 @@ public class CloudRenderHandler {
                     for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
                         RenderableData renderableData = skyChunk.getRenderableData();
 
+                        Vec3 vecCamVBO = skyChunk.getCameraPosForRender();
+                        //Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
+                        Vec3 vecCamLive = new Vec3(p_253843_, p_253663_, p_253795_);
+                        WatutMod.cloudShader.VBO_RENDER_POS.set(new Vector3f((float)(vecCamVBO.x - vecCamLive.x), (float) (vecCamVBO.y - vecCamLive.y), (float) (vecCamVBO.z - vecCamLive.z)));
+
                         if (skyChunk.isInitialized()) {
                             renderableData.getActiveRenderingVertexBuffer().bind();
 
                             RenderSystem.colorMask(true, true, true, true);
+                            if (skyChunk.isClientCameraInCloudInChunk()) {
+                                skyChunk.setClientCameraInCloudInChunk(false);
+                                RenderSystem.disableCull();
+                            }
 
                             if (rand3.nextFloat() > 0.993F && false) {
                                 Vector3f vec = new Vector3f(renderableData.getLightningPos());
@@ -266,6 +283,8 @@ public class CloudRenderHandler {
                             ShaderInstance shaderinstance = RenderSystem.getShader();
                             renderableData.getActiveRenderingVertexBuffer().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
                             VertexBuffer.unbind();
+
+                            RenderSystem.enableCull();
                         }
                     }
 
@@ -283,6 +302,22 @@ public class CloudRenderHandler {
                     }
                 }*/
             }
+
+            /*if (time % 20 == 0) {
+                boolean inCloud = false;
+                if (Minecraft.getInstance().player != null) {
+                    Player player = Minecraft.getInstance().player;
+                    int scale = 1;
+                    BlockPos playerPos = player.blockPosition().multiply(scale);
+                    if (SkyChunkManager.instance().getPoint(playerPos.getX(), playerPos.getY(), playerPos.getZ()) != null) {
+                        inCloud = true;
+                        System.out.println(time + " is player in cloud: " + inCloud);
+                    }
+
+                }
+
+            }*/
+
 
             p_254145_.popPose();
             RenderSystem.enableCull();

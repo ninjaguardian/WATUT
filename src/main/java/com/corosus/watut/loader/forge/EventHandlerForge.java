@@ -3,16 +3,15 @@ package com.corosus.watut.loader.forge;
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.cloudRendering.ShaderInstanceCloud;
+import com.corosus.watut.cloudRendering.SkyChunkManager;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterShadersEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
-import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -83,6 +82,28 @@ public class EventHandlerForge {
             //WatutMod.cloudShader = GameRenderer.getPositionTexColorNormalShader();
             //throw new RuntimeException(e);
         }
+
+    }
+
+    @SubscribeEvent
+    public void fogRender(ViewportEvent.RenderFog event) {
+
+        int scale = 1;
+        boolean inCloud = false;
+        BlockPos playerPos = event.getCamera().getBlockPosition().multiply(scale);
+        if (SkyChunkManager.instance().getPoint(playerPos.getX(), playerPos.getY(), playerPos.getZ()) != null) {
+            inCloud = true;
+            //System.out.println(time + " is player in cloud: " + inCloud);
+            event.setNearPlaneDistance(0);
+            event.setFarPlaneDistance(1);
+        }
+
+    }
+
+    @SubscribeEvent
+    public void fogColor(ViewportEvent.ComputeFogColor event) {
+
+
 
     }
 }

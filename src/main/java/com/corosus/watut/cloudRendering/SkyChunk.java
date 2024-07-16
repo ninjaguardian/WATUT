@@ -2,6 +2,7 @@ package com.corosus.watut.cloudRendering;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -24,7 +25,14 @@ public class SkyChunk {
     //tells main thread that it can be safely used
     private boolean isInitialized = false;
 
+    private boolean clientCameraInCloudInChunk = false;
+
     private RenderableData renderableData;
+
+    private boolean beingBuilt = false;
+
+    private Vec3 cameraPosDuringBuild = Vec3.ZERO;
+    private Vec3 cameraPosForRender = Vec3.ZERO;
 
     public SkyChunk(int x, int y, int z) {
         this.x = x;
@@ -50,6 +58,30 @@ public class SkyChunk {
         return z;
     }
 
+    public boolean isBeingBuilt() {
+        return beingBuilt;
+    }
+
+    public void setBeingBuilt(boolean beingBuilt) {
+        this.beingBuilt = beingBuilt;
+    }
+
+    public Vec3 getCameraPosDuringBuild() {
+        return cameraPosDuringBuild;
+    }
+
+    public void setCameraPosDuringBuild(Vec3 cameraPosDuringBuild) {
+        this.cameraPosDuringBuild = cameraPosDuringBuild;
+    }
+
+    public Vec3 getCameraPosForRender() {
+        return cameraPosForRender;
+    }
+
+    public void setCameraPosForRender(Vec3 cameraPosForRender) {
+        this.cameraPosForRender = cameraPosForRender;
+    }
+
     public HashMap<Long, SkyChunkPoint> getPoints() {
         return lookupPoints;
     }
@@ -62,6 +94,15 @@ public class SkyChunk {
         this.isInitialized = initialized;
     }
 
+    public boolean isClientCameraInCloudInChunk() {
+        return clientCameraInCloudInChunk;
+    }
+
+    public void setClientCameraInCloudInChunk(boolean clientCameraInCloudInChunk) {
+        this.clientCameraInCloudInChunk = clientCameraInCloudInChunk;
+    }
+
+    //uses internal pos values
     public SkyChunkPoint getPoint(int x, int y, int z) {
         long hash = BlockPos.asLong(x, y, z);
         return lookupPoints.get(hash);

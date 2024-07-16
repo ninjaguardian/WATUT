@@ -16,6 +16,7 @@ uniform int FogShape;
 uniform vec3 Light0_Direction2;
 uniform vec3 Light1_Direction2;
 uniform vec3 Lightning_Pos;
+uniform vec3 VBO_Render_Pos;
 
 out vec2 texCoord0;
 out float vertexDistance;
@@ -23,9 +24,10 @@ out vec4 vertexColor;
 out vec4 normal;
 
 void main() {
-    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+    vec3 posAdj = Position + VBO_Render_Pos;
+    gl_Position = ProjMat * ModelViewMat * vec4(posAdj, 1.0);
 
-    vec3 posFloored = floor(Position + 0.2);
+    //vec3 posFloored = floor(Position + 0.2);
 
     /*if (distance(posFloored, vec3(0, 200, 0)) > 50) {
         return;
@@ -47,7 +49,7 @@ void main() {
     //vec3 Light1_Direction_static = vec3(0, 1, 0);
 
     texCoord0 = UV0;
-    vertexDistance = fog_distance(ModelViewMat, Position, FogShape);
+    vertexDistance = fog_distance(ModelViewMat, posAdj, FogShape);
     //vertexDistance = 100F;
     normal = ProjMat * ModelViewMat * vec4(Normal, 0.0);
     //minimize the impact normals have
@@ -76,8 +78,8 @@ void main() {
     newColor.a = max(Color.a, 0);
 
     if (Lightning_Pos.y != -999) {
-        if (distance(Lightning_Pos, Position) < 40) {
-            float distFract = 1 - (distance(Lightning_Pos, Position) / 40);
+        if (distance(Lightning_Pos, posAdj) < 40) {
+            float distFract = 1 - (distance(Lightning_Pos, posAdj) / 40);
             newColor.rgb *= 1 + distFract;
         }
     }
