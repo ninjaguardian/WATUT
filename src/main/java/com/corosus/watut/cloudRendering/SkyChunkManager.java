@@ -38,13 +38,13 @@ public class SkyChunkManager {
         return lookupSkyChunks;
     }
 
-    public SkyChunk.SkyChunkPoint getPoint(int blockPosX, int blockPosY, int blockPosZ) {
+    public SkyChunk.SkyChunkPoint getPoint(boolean mainThread, int blockPosX, int blockPosY, int blockPosZ) {
         SkyChunk skyChunk = getSkyChunkFromBlockPos(blockPosX, blockPosY, blockPosZ);
-        return skyChunk.getPoint(blockPosX & (SkyChunk.size - 1), blockPosY & (SkyChunk.size - 1), blockPosZ & (SkyChunk.size - 1));
+        return skyChunk.getPoint(mainThread, blockPosX & (SkyChunk.size - 1), blockPosY & (SkyChunk.size - 1), blockPosZ & (SkyChunk.size - 1));
     }
 
-    public long addPoint(int blockPosX, int blockPosY, int blockPosZ) {
+    public long addPoint(boolean mainThread, int blockPosX, int blockPosY, int blockPosZ) {
         SkyChunk skyChunk = getSkyChunkFromBlockPos(blockPosX, blockPosY, blockPosZ);
-        return skyChunk.addPoint(blockPosX & (SkyChunk.size - 1), blockPosY & (SkyChunk.size - 1), blockPosZ & (SkyChunk.size - 1));
+        return skyChunk.addPoint(mainThread, blockPosX & (SkyChunk.size - 1), blockPosY & (SkyChunk.size - 1), blockPosZ & (SkyChunk.size - 1));
     }
 }

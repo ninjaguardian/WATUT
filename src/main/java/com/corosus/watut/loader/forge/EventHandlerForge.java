@@ -84,26 +84,4 @@ public class EventHandlerForge {
         }
 
     }
-
-    @SubscribeEvent
-    public void fogRender(ViewportEvent.RenderFog event) {
-
-        int scale = 1;
-        boolean inCloud = false;
-        BlockPos playerPos = event.getCamera().getBlockPosition().multiply(scale);
-        if (SkyChunkManager.instance().getPoint(playerPos.getX(), playerPos.getY(), playerPos.getZ()) != null) {
-            inCloud = true;
-            //System.out.println(time + " is player in cloud: " + inCloud);
-            event.setNearPlaneDistance(0);
-            event.setFarPlaneDistance(1);
-        }
-
-    }
-
-    @SubscribeEvent
-    public void fogColor(ViewportEvent.ComputeFogColor event) {
-
-
-
-    }
 }

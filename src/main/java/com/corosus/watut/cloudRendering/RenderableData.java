@@ -8,7 +8,7 @@ public class RenderableData {
 
     //alternating buffers for off thread building
     private ThreadedVertexBuffer vertexBufferA;
-    private ThreadedVertexBuffer vertexBufferB;
+    //private ThreadedVertexBuffer vertexBufferB;
 
     //skychunk VBO data
     private ThreadedBufferBuilder.RenderedBuffer vbo;
@@ -25,18 +25,18 @@ public class RenderableData {
 
     public void initBuffersIfNeeded() {
         if (vertexBufferA == null) vertexBufferA = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
-        if (vertexBufferB == null) vertexBufferB = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
+        //if (vertexBufferB == null) vertexBufferB = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
     }
 
     public ThreadedVertexBuffer getActiveRenderingVertexBuffer() {
         initBuffersIfNeeded();
-        return bufferAActive ? vertexBufferA : vertexBufferB;
-    }
+        return vertexBufferA;
+    }/*
 
     public ThreadedVertexBuffer getOffthreadBuildingVertexBuffer() {
         initBuffersIfNeeded();
         return bufferAActive ? vertexBufferB : vertexBufferA;
-    }
+    }*/
 
     public void swapBuffers() {
         bufferAActive = !bufferAActive;

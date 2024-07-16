@@ -20,7 +20,8 @@ public class SkyChunk {
     public static int size = 128;
 
     //TODO: we could replace this with what chunks use, look around use to turn x y z into efficient storage by index of CrudeIncrementalIntIdentityHashBiMap and PalletedContainer.Strategy
-    private HashMap<Long, SkyChunkPoint> lookupPoints = new HashMap<>();
+    private HashMap<Long, SkyChunkPoint> lookupPointsMainThread = new HashMap<>();
+    private HashMap<Long, SkyChunkPoint> lookupPointsOffThread = new HashMap<>();
 
     //tells main thread that it can be safely used
     private boolean isInitialized = false;
@@ -82,8 +83,12 @@ public class SkyChunk {
         this.cameraPosForRender = cameraPosForRender;
     }
 
-    public HashMap<Long, SkyChunkPoint> getPoints() {
-        return lookupPoints;
+    public HashMap<Long, SkyChunkPoint> getPointsMainThread() {
+        return lookupPointsMainThread;
+    }
+
+    public HashMap<Long, SkyChunkPoint> getPointsOffThread() {
+        return lookupPointsOffThread;
     }
 
     public boolean isInitialized() {
@@ -103,18 +108,31 @@ public class SkyChunk {
     }
 
     //uses internal pos values
-    public SkyChunkPoint getPoint(int x, int y, int z) {
+    public SkyChunkPoint getPoint(boolean mainThread, int x, int y, int z) {
         long hash = BlockPos.asLong(x, y, z);
-        return lookupPoints.get(hash);
+        return mainThread ? lookupPointsMainThread.get(hash) : lookupPointsOffThread.get(hash);
     }
 
-    public long addPoint(int x, int y, int z) {
+    public long addPoint(boolean mainThread, int x, int y, int z) {
         long hash = BlockPos.asLong(x, y, z);
-        if (!lookupPoints.containsKey(hash)) {
-            SkyChunkPoint cloudPoint = new SkyChunkPoint(x, y, z);
-            lookupPoints.put(hash, cloudPoint);
+        if (mainThread) {
+            if (!lookupPointsMainThread.containsKey(hash)) {
+                SkyChunkPoint cloudPoint = new SkyChunkPoint(lookupPointsMainThread, x, y, z);
+                lookupPointsMainThread.put(hash, cloudPoint);
+            }
+        } else {
+            if (!lookupPointsOffThread.containsKey(hash)) {
+                SkyChunkPoint cloudPoint = new SkyChunkPoint(lookupPointsOffThread, x, y, z);
+                lookupPointsOffThread.put(hash, cloudPoint);
+            }
         }
         return hash;
+    }
+
+    public void pushNewOffThreadDataToMainThread() {
+        setCameraPosForRender(getCameraPosDuringBuild());
+        lookupPointsMainThread.clear();
+        lookupPointsMainThread.putAll(lookupPointsOffThread);
     }
 
     public class SkyChunkPoint {
@@ -126,10 +144,14 @@ public class SkyChunk {
         private float shapeAdjustThreshold = 0;
         private float normalizedDistanceToOutside = 1F;
 
-        public SkyChunkPoint(int x, int y, int z) {
+        //private SkyChunk skyChunk;
+        private HashMap<Long, SkyChunkPoint> lookupPoints;
+
+        public SkyChunkPoint(HashMap<Long, SkyChunkPoint> lookupPoints, int x, int y, int z) {
             this.x = x;
             this.y = y;
             this.z = z;
+            this.lookupPoints = lookupPoints;
         }
 
         public float getShapeAdjustThreshold() {

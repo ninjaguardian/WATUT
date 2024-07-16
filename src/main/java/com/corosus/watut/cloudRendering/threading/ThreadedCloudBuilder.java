@@ -2,10 +2,7 @@ package com.corosus.watut.cloudRendering.threading;
 
 import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.*;
-import com.corosus.watut.cloudRendering.Cloud;
-import com.corosus.watut.cloudRendering.RenderableData;
-import com.corosus.watut.cloudRendering.SkyChunk;
-import com.corosus.watut.cloudRendering.SkyChunkManager;
+import com.corosus.watut.cloudRendering.*;
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
@@ -172,13 +169,13 @@ public class ThreadedCloudBuilder {
             ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
             float scale = 4;
             scale = 1;
-            scale = 4;
+            //scale = 4;
             timeOffset = this.getTicks();
 
             //clear out old skychunk data
             for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
                 skyChunk.setBeingBuilt(true);
-                skyChunk.getPoints().clear();
+                skyChunk.getPointsOffThread().clear();
             }
 
             //FIRST WE ITERATE CLOUDS TO PUT INTO SKYCHUNK DATA
@@ -255,7 +252,7 @@ public class ThreadedCloudBuilder {
 
         }*/
 
-        for (SkyChunk.SkyChunkPoint entry : skyChunk.getPoints().values()) {
+        for (SkyChunk.SkyChunkPoint entry : skyChunk.getPointsOffThread().values()) {
             List<Direction> listRenderables = entry.getRenderableSides();
             float dist = entry.calculateNormalizedDistanceToOutside();
             entry.setNormalizedDistanceToOutside(dist);
@@ -306,7 +303,7 @@ public class ThreadedCloudBuilder {
 
                     float noiseThreshAdj = 0.2F;
                     if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
-                        SkyChunkManager.instance().addPoint(indexX, indexY, indexZ);
+                        SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
                     }
 
                 }
@@ -588,7 +585,7 @@ public class ThreadedCloudBuilder {
                     if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
                         //SkyChunkManager.instance().
                         //cloud.addPoint(x, y, z);
-                        SkyChunkManager.instance().addPoint(indexX, indexY, indexZ);
+                        SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
                     }
                     /*if (vec < 0.80) {
                         cloud.addPoint(x, y, z);

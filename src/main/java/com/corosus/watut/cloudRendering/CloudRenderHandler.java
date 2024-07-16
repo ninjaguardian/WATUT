@@ -124,7 +124,7 @@ public class CloudRenderHandler {
                 threadedCloudBuilder.setSizeY(30);
                 threadedCloudBuilder.setSizeZ(40);
 
-                int scale = 4;
+                int scale = 1;
                 threadedCloudBuilder.setCloudsY(200 / scale);
 
                 //initSkyChunksForGrid();
@@ -165,6 +165,7 @@ public class CloudRenderHandler {
                     }*/
 
                     for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
+
                         RenderableData renderableData = skyChunk.getRenderableData();
 
                         //TODO: for now we might not need this, but to fix the thread conflict from using upload, it might be needed
@@ -172,7 +173,8 @@ public class CloudRenderHandler {
                         renderableData.getActiveRenderingVertexBuffer().bind();
                         renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
                         skyChunk.setInitialized(true);
-                        skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
+                        //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
+                        skyChunk.pushNewOffThreadDataToMainThread();
                         skyChunk.setBeingBuilt(false);
                         ThreadedVertexBuffer.unbind();
 

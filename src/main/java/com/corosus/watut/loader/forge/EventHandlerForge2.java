@@ -17,41 +17,43 @@ public class EventHandlerForge2 {
     public static void fogRender(ViewportEvent.RenderFog event) {
 
         //TODO: not being applied correctly, the way the grid adjust to scale most likely is wrong
-        int scale = 4;
+        int scale = 1;
         boolean inCloud = false;
         BlockPos playerPos = event.getCamera().getBlockPosition().multiply(scale);
 
-        SkyChunk skyChunk = SkyChunkManager.instance().getSkyChunkFromBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ());
+        //SkyChunk skyChunk = SkyChunkManager.instance().getSkyChunkFromBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ());
         //TODO: this isnt good enough, very delayed often, we need 2 copies of SkyChunk, one thats always accurate to the active rendering vbo
-        if (!skyChunk.isBeingBuilt()) {
-            if (SkyChunkManager.instance().getPoint(playerPos.getX(), playerPos.getY(), playerPos.getZ()) != null) {
-                inCloud = true;
-            }
-
+        /*if (!skyChunk.isBeingBuilt()) {
             inFogLastState = inCloud;
         } else {
             inCloud = inFogLastState;
+        }*/
+
+        if (SkyChunkManager.instance().getPoint(true, playerPos.getX(), playerPos.getY(), playerPos.getZ()) != null) {
+            inCloud = true;
+            inFogLastState = true;
+        } else {
+            inFogLastState = false;
         }
 
         if (inCloud) {
             SkyChunkManager.instance().getSkyChunkFromBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ()).setClientCameraInCloudInChunk(true);
 
             event.setNearPlaneDistance(0);
-            event.setFarPlaneDistance(5);
+            event.setFarPlaneDistance(2);
             event.setCanceled(true);
         }
-
-
-
     }
 
     @SubscribeEvent
     public static void fogColor(ViewportEvent.ComputeFogColor event) {
 
-        float brightness = 0.7F;
-        /*event.setRed(brightness);
-        event.setGreen(brightness);
-        event.setBlue(brightness);*/
+        if (inFogLastState) {
+            float brightness = 0.7F;
+            event.setRed(brightness);
+            event.setGreen(brightness);
+            event.setBlue(brightness);
+        }
 
     }
 }
