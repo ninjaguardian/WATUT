@@ -39,6 +39,7 @@ public class ThreadedCloudBuilder {
     private int sizeZ = 30;
 
     private int cloudsY = 140;
+    private int scale = 4;
 
     private Cloud cloudShape = new Cloud(sizeX, sizeY, sizeZ);
     private Cloud cloudShape2 = new Cloud(sizeX, sizeY, sizeZ);
@@ -54,6 +55,8 @@ public class ThreadedCloudBuilder {
 
     //if i split vbo building into multiple threads this needs to change
     Vec3 camVec = Vec3.ZERO;
+
+    public boolean testOnce = false;
 
     public synchronized boolean isRunning() {
         return isRunning;
@@ -77,6 +80,14 @@ public class ThreadedCloudBuilder {
 
     public void setCamVec(Vec3 camVec) {
         this.camVec = camVec;
+    }
+
+    public int getScale() {
+        return scale;
+    }
+
+    public void setScale(int scale) {
+        this.scale = scale;
     }
 
     /*public List<RenderableData> getRenderableClouds() {
@@ -167,9 +178,7 @@ public class ThreadedCloudBuilder {
             rand = new Random(5);
 
             ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
-            float scale = 4;
-            scale = 1;
-            //scale = 4;
+            this.setScale(4);
             timeOffset = this.getTicks();
 
             //clear out old skychunk data
@@ -179,6 +188,8 @@ public class ThreadedCloudBuilder {
             }
 
             //FIRST WE ITERATE CLOUDS TO PUT INTO SKYCHUNK DATA
+
+            testOnce = false;
 
             for (int ii = 0; ii < cloudCount; ii++) {
 
@@ -209,7 +220,7 @@ public class ThreadedCloudBuilder {
                 Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
                 this.setCamVec(vecCam);
                 skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
-                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
+                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY / scale, 0, vec3, scale));
             }
 
             //System.out.println("skychunk count: " + SkyChunkManager.instance().getSkyChunks().size());
@@ -466,7 +477,7 @@ public class ThreadedCloudBuilder {
 
         columns = 20;
         columns = 10;
-        //columns = 1;
+        columns = 1;
         rows = 20;
 
         int xOffset = cloudIndex % columns;
@@ -508,7 +519,7 @@ public class ThreadedCloudBuilder {
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.8F);
         time += (cloudIndex * 25);
-        //time = 0;
+        time = 0;
 
         /*for (int x = 0; x <= cloud.getSizeX(); x++) {
             for (int y = 0; y <= cloud.getSizeY(); y++) {
@@ -585,7 +596,10 @@ public class ThreadedCloudBuilder {
                     if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
                         //SkyChunkManager.instance().
                         //cloud.addPoint(x, y, z);
-                        SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
+                        if (!testOnce) {
+                            testOnce = true;
+                            SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
+                        }
                     }
                     /*if (vec < 0.80) {
                         cloud.addPoint(x, y, z);
@@ -673,6 +687,7 @@ public class ThreadedCloudBuilder {
                 Vector3f vector3f2 = avector3f32[i];
                 vector3f.rotate(quaternion);
                 vector3f2.rotate(quaternion);
+                //vector3f.add(-0.5F, -0.5F, -0.5F);
                 vector3f.add((float) dir.getStepX(), (float) dir.getStepY(), (float) dir.getStepZ());
                 if (randRotate) vector3f.rotate(q2);
                 //vector3f.mul(scale * 2);
@@ -684,7 +699,7 @@ public class ThreadedCloudBuilder {
                 //vector3f.add((float) cubePos.x, (float) cubePos.y, (float) cubePos.z);
                 vector3f.add((float) cubePos.x * scale, (float) cubePos.y * scale, (float) cubePos.z * scale);
 
-                //TODO: test to prep for fog / relative render fix
+                //position relative to camera
                 vector3f.add((float) -camVec.x(), (float) -camVec.y(), (float) -camVec.z());
             }
 

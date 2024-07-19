@@ -1,9 +1,12 @@
 package com.corosus.watut.loader.forge;
 
 import com.corosus.watut.WatutMod;
+import com.corosus.watut.cloudRendering.CloudRenderHandler;
 import com.corosus.watut.cloudRendering.SkyChunk;
 import com.corosus.watut.cloudRendering.SkyChunkManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -16,18 +19,19 @@ public class EventHandlerForge2 {
     @SubscribeEvent
     public static void fogRender(ViewportEvent.RenderFog event) {
 
-        //TODO: not being applied correctly, the way the grid adjust to scale most likely is wrong
-        int scale = 1;
+        int scale = WatutMod.cloudRenderHandler.getThreadedCloudBuilder().getScale();
         boolean inCloud = false;
-        BlockPos playerPos = event.getCamera().getBlockPosition().multiply(scale);
+        //BlockPos playerPos = event.getCamera().getBlockPosition().multiply(scale);
+        Vec3 vec = event.getCamera().getPosition();
+
+        //TODO: the 0.5 is because my renderer is off by that, fix that then remove this
+        //somehow its not a problem at scale 4 visually???
+
+        float adj = 0.5F * scale;
+        //adj = 0.0F * scale;
+        BlockPos playerPos = new BlockPos(Mth.floor(vec.x + adj) / scale, ((Mth.floor(vec.y + adj))) / scale, Mth.floor(vec.z + adj) / scale);
 
         //SkyChunk skyChunk = SkyChunkManager.instance().getSkyChunkFromBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ());
-        //TODO: this isnt good enough, very delayed often, we need 2 copies of SkyChunk, one thats always accurate to the active rendering vbo
-        /*if (!skyChunk.isBeingBuilt()) {
-            inFogLastState = inCloud;
-        } else {
-            inCloud = inFogLastState;
-        }*/
 
         if (SkyChunkManager.instance().getPoint(true, playerPos.getX(), playerPos.getY(), playerPos.getZ()) != null) {
             inCloud = true;
