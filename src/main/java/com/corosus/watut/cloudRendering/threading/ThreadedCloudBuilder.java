@@ -178,7 +178,6 @@ public class ThreadedCloudBuilder {
             rand = new Random(5);
 
             ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
-            this.setScale(4);
             timeOffset = this.getTicks();
 
             //clear out old skychunk data
@@ -596,45 +595,20 @@ public class ThreadedCloudBuilder {
                     if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
                         //SkyChunkManager.instance().
                         //cloud.addPoint(x, y, z);
-                        if (!testOnce) {
-                            testOnce = true;
+                        //if (!testOnce) {
+                            //testOnce = true;
                             SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
-                        }
+                            //SkyChunkManager.instance().addPoint(false, 0, getCloudsY(), 0);
+                        //}
                     }
-                    /*if (vec < 0.80) {
-                        cloud.addPoint(x, y, z);
-                    }*/
                 }
             }
         }
-
-        /*for (Map.Entry<Long, Cloud.CloudPoint> entry : cloud.getLookupCloudPoints().entrySet()) {
-            List<Direction> listRenderables = entry.getValue().getRenderableSides();
-            float dist = entry.getValue().calculateNormalizedDistanceToOutside();
-            entry.getValue().setNormalizedDistanceToOutside(dist);
-            renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
-                    new Vector3f(cubePos.x + entry.getValue().getX(), cubePos.y + entry.getValue().getY(), cubePos.z + entry.getValue().getZ())
-                    , scale, listRenderables, entry.getValue(), 0, renderableCloud);
-        }*/
     }
 
     private void renderCloudCube(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, SkyChunk.SkyChunkPoint cloudPoint) {
-        //Random rand = rand2;
-
         pointCount++;
-
         Quaternionf q2 = new Quaternionf(0, 0, 0, 1);
-        int range = 5;
-        range = 180;
-        /*Vector3f w = new Vector3f();
-        w.rota*/
-        /*q2.mul(Vector3f.XP.rotationDegrees(rand.nextInt(range)));
-        q2.mul(Vector3f.YP.rotationDegrees(rand.nextInt(range)));
-        //q2.mul(Vector3f.YP.rotationDegrees(rand.nextInt(45)));
-        q2.mul(Vector3f.ZP.rotationDegrees(rand.nextInt(range)));*/
-
-
-
         Random rand2 = new Random((long) (cubePos.x + cubePos.z));
 
         boolean randRotate = false;
@@ -687,7 +661,7 @@ public class ThreadedCloudBuilder {
                 Vector3f vector3f2 = avector3f32[i];
                 vector3f.rotate(quaternion);
                 vector3f2.rotate(quaternion);
-                //vector3f.add(-0.5F, -0.5F, -0.5F);
+                vector3f.add(1F, 1F, 1F);
                 vector3f.add((float) dir.getStepX(), (float) dir.getStepY(), (float) dir.getStepZ());
                 if (randRotate) vector3f.rotate(q2);
                 //vector3f.mul(scale * 2);

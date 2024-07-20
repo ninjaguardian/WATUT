@@ -74,8 +74,8 @@ public class CloudRenderHandler {
             threadedCloudBuilder.setSizeY(30);
             threadedCloudBuilder.setSizeZ(40);
 
-            int scale = 4;
-            threadedCloudBuilder.setCloudsY(200 / scale);
+            threadedCloudBuilder.setScale(4);
+            threadedCloudBuilder.setCloudsY(200 / threadedCloudBuilder.getScale());
 
             //initSkyChunksForGrid();
 

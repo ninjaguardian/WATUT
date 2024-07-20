@@ -21,15 +21,8 @@ public class EventHandlerForge2 {
 
         int scale = WatutMod.cloudRenderHandler.getThreadedCloudBuilder().getScale();
         boolean inCloud = false;
-        //BlockPos playerPos = event.getCamera().getBlockPosition().multiply(scale);
         Vec3 vec = event.getCamera().getPosition();
-
-        //TODO: the 0.5 is because my renderer is off by that, fix that then remove this
-        //somehow its not a problem at scale 4 visually???
-
-        float adj = 0.5F * scale;
-        //adj = 0.0F * scale;
-        BlockPos playerPos = new BlockPos(Mth.floor(vec.x + adj) / scale, ((Mth.floor(vec.y + adj))) / scale, Mth.floor(vec.z + adj) / scale);
+        BlockPos playerPos = new BlockPos(Mth.floor(vec.x / scale), ((Mth.floor(vec.y / scale))), Mth.floor(vec.z / scale));
 
         //SkyChunk skyChunk = SkyChunkManager.instance().getSkyChunkFromBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ());
 
