@@ -1,5 +1,6 @@
 package com.corosus.watut.cloudRendering;
 
+import com.corosus.coroutil.util.CULog;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -76,7 +77,14 @@ public class SkyChunk {
 
     public boolean needsBuild() {
         if (Minecraft.getInstance().level == null) return false;
-        return lastBuildTime + rebuildFrequency < Minecraft.getInstance().level.getGameTime();
+        //return lastBuildTime + rebuildFrequency < Minecraft.getInstance().level.getGameTime();
+
+        rebuildFrequency = 20*5;
+
+        //keep all skychunks updating in sync, or immediately if new
+        //if its 2 updates behind (because it just came into range, force a new build
+        if (lastBuildTime + (rebuildFrequency * 2) < Minecraft.getInstance().level.getGameTime()) return true;
+        return lastBuildTime == 0 || Minecraft.getInstance().level.getGameTime() % rebuildFrequency == 0;
     }/*
 
     public synchronized boolean isWaitingToUploadData() {
@@ -154,6 +162,9 @@ public class SkyChunk {
     }
 
     public long addPoint(boolean mainThread, int x, int y, int z) {
+        if (x < 0 || x >= SkyChunk.size || y < 0 || y >= SkyChunk.size || z < 0 || z >= SkyChunk.size) {
+            CULog.err("x y z used outside of SkyChunk range!!! " + x + " " + y + " " + z);
+        }
         long hash = BlockPos.asLong(x, y, z);
         if (mainThread) {
             if (!lookupPointsMainThread.containsKey(hash)) {

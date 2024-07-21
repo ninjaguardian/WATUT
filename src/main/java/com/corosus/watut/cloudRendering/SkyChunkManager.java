@@ -1,6 +1,7 @@
 package com.corosus.watut.cloudRendering;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,7 +37,7 @@ public class SkyChunkManager {
     }
 
     public SkyChunk getSkyChunkFromBlockPos(int blockPosX, int blockPosY, int blockPosZ) {
-        return getSkyChunk(blockPosX / SkyChunk.size, blockPosY / SkyChunk.size, blockPosZ / SkyChunk.size);
+        return getSkyChunk(Mth.floor((float)blockPosX / SkyChunk.size), Mth.floor((float)blockPosY / SkyChunk.size), Mth.floor((float)blockPosZ / SkyChunk.size));
     }
 
     public ConcurrentHashMap<Long, SkyChunk> getSkyChunks() {

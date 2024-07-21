@@ -219,9 +219,24 @@ public class ThreadedCloudBuilder {
             //query to build vbo
             //test
             //CULog.log("added point to " + skyChunk.getX() + " - " + skyChunk.getZ());
-            skyChunk.addPoint(false, 0, 50, 0);
+            //skyChunk.addPoint(false, 0, 200 / getScale(), 0);
+            Random rand = new Random(5);
+            //skyChunk.addPoint(false, 5, 120, 5);
+            for (int i = 0; i < 50; i++) {
+                //skyChunk.addPoint(false, i * 2, 120, 0);
+                //skyChunk.addPoint(false, rand.nextInt(127), 120, rand.nextInt(127));
+            }
 
-            generateAlgoCloud(skyChunk, 5, cloudsY + 5);
+
+
+            if (scale == 1) {
+                //TODO: note, offsetY + sizeY must never be above 128, maybe do this code block differently, assumes getQueueUpdateSkyChunks doesnt go above or below 0 for y for sky chunks
+                generateAlgoCloud(skyChunk, 5, 120);
+            } else if (scale == 4) {
+                generateAlgoCloud(skyChunk, 5, 50);
+            }
+
+            //generateAlgoCloud(skyChunk, 5, cloudsY + 5);
 
             //remove from update queue
             it.remove();
@@ -379,6 +394,7 @@ public class ThreadedCloudBuilder {
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
+        time = 0;
 
         BlockPos skyChunkWorldPos = skyChunk.getWorldPos();
 
