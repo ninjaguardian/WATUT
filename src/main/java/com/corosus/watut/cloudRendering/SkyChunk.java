@@ -1,7 +1,9 @@
 package com.corosus.watut.cloudRendering;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -25,15 +27,20 @@ public class SkyChunk {
 
     //tells main thread that it can be safely used
     private boolean isInitialized = false;
+    //private boolean beingBuilt = false;
+    private long lastBuildTime = 0;
+    private int rebuildFrequency = 20*5;
+    //private boolean isWaitingToUploadData = false;
 
-    private boolean clientCameraInCloudInChunk = false;
+    private boolean clientCameraInCloudForSkyChunk = false;
 
     private RenderableData renderableData;
 
-    private boolean beingBuilt = false;
-
     private Vec3 cameraPosDuringBuild = Vec3.ZERO;
     private Vec3 cameraPosForRender = Vec3.ZERO;
+
+    //brought over from ThreadedCloudBuilder
+    private int gameTicksAtStart = 0;
 
     public SkyChunk(int x, int y, int z) {
         this.x = x;
@@ -57,7 +64,7 @@ public class SkyChunk {
 
     public int getZ() {
         return z;
-    }
+    }/*
 
     public boolean isBeingBuilt() {
         return beingBuilt;
@@ -65,6 +72,27 @@ public class SkyChunk {
 
     public void setBeingBuilt(boolean beingBuilt) {
         this.beingBuilt = beingBuilt;
+    }*/
+
+    public boolean needsBuild() {
+        if (Minecraft.getInstance().level == null) return false;
+        return lastBuildTime + rebuildFrequency < Minecraft.getInstance().level.getGameTime();
+    }/*
+
+    public synchronized boolean isWaitingToUploadData() {
+        return isWaitingToUploadData;
+    }
+
+    public synchronized void setWaitingToUploadData(boolean waitingToUploadData) {
+        isWaitingToUploadData = waitingToUploadData;
+    }*/
+
+    public long getLastBuildTime() {
+        return lastBuildTime;
+    }
+
+    public void setLastBuildTime(long lastBuildTime) {
+        this.lastBuildTime = lastBuildTime;
     }
 
     public Vec3 getCameraPosDuringBuild() {
@@ -99,18 +127,30 @@ public class SkyChunk {
         this.isInitialized = initialized;
     }
 
-    public boolean isClientCameraInCloudInChunk() {
-        return clientCameraInCloudInChunk;
+    public boolean isClientCameraInCloudForSkyChunk() {
+        return clientCameraInCloudForSkyChunk;
     }
 
-    public void setClientCameraInCloudInChunk(boolean clientCameraInCloudInChunk) {
-        this.clientCameraInCloudInChunk = clientCameraInCloudInChunk;
+    public static BlockPos worldPosToChunkPos(double x, double y, double z) {
+        return new BlockPos(Mth.floor(x / SkyChunk.size), Mth.floor(y / SkyChunk.size), Mth.floor(z / SkyChunk.size));
+    }
+
+    public BlockPos getWorldPos() {
+        return new BlockPos(x * SkyChunk.size, y * SkyChunk.size, z * SkyChunk.size);
+    }
+
+    public void setClientCameraInCloudForSkyChunk(boolean clientCameraInCloudForSkyChunk) {
+        this.clientCameraInCloudForSkyChunk = clientCameraInCloudForSkyChunk;
     }
 
     //uses internal pos values
     public SkyChunkPoint getPoint(boolean mainThread, int x, int y, int z) {
         long hash = BlockPos.asLong(x, y, z);
         return mainThread ? lookupPointsMainThread.get(hash) : lookupPointsOffThread.get(hash);
+    }
+
+    public long getLongHashCode() {
+        return BlockPos.asLong(x, y, z);
     }
 
     public long addPoint(boolean mainThread, int x, int y, int z) {
@@ -197,7 +237,7 @@ public class SkyChunk {
 
         @Override
         public String toString() {
-            return "SkyChunk{" +
+            return "SkyChunkPoint{" +
                     "x=" + x +
                     ", y=" + y +
                     ", z=" + z +

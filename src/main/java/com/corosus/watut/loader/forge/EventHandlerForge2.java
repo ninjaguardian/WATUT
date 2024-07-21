@@ -1,8 +1,6 @@
 package com.corosus.watut.loader.forge;
 
 import com.corosus.watut.WatutMod;
-import com.corosus.watut.cloudRendering.CloudRenderHandler;
-import com.corosus.watut.cloudRendering.SkyChunk;
 import com.corosus.watut.cloudRendering.SkyChunkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -34,7 +32,7 @@ public class EventHandlerForge2 {
         }
 
         if (inCloud) {
-            SkyChunkManager.instance().getSkyChunkFromBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ()).setClientCameraInCloudInChunk(true);
+            SkyChunkManager.instance().getSkyChunkFromBlockPos(playerPos.getX(), playerPos.getY(), playerPos.getZ()).setClientCameraInCloudForSkyChunk(true);
 
             event.setNearPlaneDistance(0);
             event.setFarPlaneDistance(2);

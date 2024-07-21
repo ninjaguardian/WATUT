@@ -30,6 +30,11 @@ public class SkyChunkManager {
         return lookupSkyChunks.get(hash);
     }
 
+    public SkyChunk getSkyChunkIfExists(int skyChunkPosX, int skyChunkPosY, int skyChunkPosZ) {
+        long hash = BlockPos.asLong(skyChunkPosX, skyChunkPosY, skyChunkPosZ);
+        return lookupSkyChunks.get(hash);
+    }
+
     public SkyChunk getSkyChunkFromBlockPos(int blockPosX, int blockPosY, int blockPosZ) {
         return getSkyChunk(blockPosX / SkyChunk.size, blockPosY / SkyChunk.size, blockPosZ / SkyChunk.size);
     }
