@@ -96,26 +96,30 @@ public class CloudRenderHandler {
             this.generateClouds = false;
         //}
 
-        for (Iterator<Map.Entry<Long, SkyChunk>> it = threadedCloudBuilder.getQueueWaitingForUploadSkyChunks().entrySet().iterator(); it.hasNext(); ) {
+        if (threadedCloudBuilder.getSyncState() == ThreadedCloudBuilder.SyncState.IDLE) {
+            threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.MAINTHREADUPLOADINGVBO);
+            for (Iterator<Map.Entry<Long, SkyChunk>> it = threadedCloudBuilder.getQueueWaitingForUploadSkyChunks().entrySet().iterator(); it.hasNext(); ) {
 
-            Map.Entry<Long, SkyChunk> entry = it.next();
-            SkyChunk skyChunk = entry.getValue();
+                Map.Entry<Long, SkyChunk> entry = it.next();
+                SkyChunk skyChunk = entry.getValue();
 
-            RenderableData renderableData = skyChunk.getRenderableData();
+                RenderableData renderableData = skyChunk.getRenderableData();
 
-            //TODO: for now we might not need this, but to fix the thread conflict from using upload, it might be needed
-            //renderableData.swapBuffers();
-            renderableData.getActiveRenderingVertexBuffer().bind();
-            renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
-            skyChunk.setInitialized(true);
-            //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
-            skyChunk.pushNewOffThreadDataToMainThread();
-            ThreadedVertexBuffer.unbind();
-            //skyChunk.setBeingBuilt(false);
+                //TODO: for now we might not need this, but to fix the thread conflict from using upload, it might be needed
+                //renderableData.swapBuffers();
+                renderableData.getActiveRenderingVertexBuffer().bind();
+                renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
+                skyChunk.setInitialized(true);
+                //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
+                skyChunk.pushNewOffThreadDataToMainThread();
+                ThreadedVertexBuffer.unbind();
+                //skyChunk.setBeingBuilt(false);
 
-            //remove from upload queue
-            it.remove();
+                //remove from upload queue
+                it.remove();
 
+            }
+            threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
         }
 
         /*if (!threadedCloudBuilder.isRunning()) {

@@ -24,6 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ThreadedCloudBuilder {
 
+    public enum SyncState {
+        IDLE,
+        OFFTHREADBUILDINGVBO,
+        MAINTHREADUPLOADINGVBO
+    }
+
     private Random rand = new Random();
     private Random rand2 = new Random();
 
@@ -50,6 +56,7 @@ public class ThreadedCloudBuilder {
     private Cloud cloudShape2 = new Cloud(sizeX, sizeY, sizeZ);
     private boolean cloudShapeNeedsPrecalc = true;
     private boolean cloudShape2NeedsPrecalc = true;
+    private SyncState syncState = SyncState.IDLE;
 
     //private boolean isRunning = false;
 
@@ -73,6 +80,14 @@ public class ThreadedCloudBuilder {
     public synchronized void setRunning(boolean isRunning) {
         this.isRunning = isRunning;
     }*/
+
+    public synchronized SyncState getSyncState() {
+        return syncState;
+    }
+
+    public synchronized void setSyncState(SyncState syncState) {
+        this.syncState = syncState;
+    }
 
     public Vec3 getCamVec() {
         return camVec;
@@ -209,48 +224,52 @@ public class ThreadedCloudBuilder {
         ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
         Vec3 vec3 = new Vec3(0, 0, 0);
 
-        for (Iterator<Map.Entry<Long, SkyChunk>> it = getQueueUpdateSkyChunks().entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Long, SkyChunk> entry = it.next();
-            SkyChunk skyChunk = entry.getValue();
-            skyChunk.getPointsOffThread().clear();
-            //skyChunk.setBeingBuilt(true);
 
-            //query to build point map
-            //query to build vbo
-            //test
-            //CULog.log("added point to " + skyChunk.getX() + " - " + skyChunk.getZ());
-            //skyChunk.addPoint(false, 0, 200 / getScale(), 0);
-            Random rand = new Random(5);
-            //skyChunk.addPoint(false, 5, 120, 5);
-            for (int i = 0; i < 50; i++) {
-                //skyChunk.addPoint(false, i * 2, 120, 0);
-                //skyChunk.addPoint(false, rand.nextInt(127), 120, rand.nextInt(127));
+        if (syncState == SyncState.IDLE) {
+            this.setSyncState(SyncState.OFFTHREADBUILDINGVBO);
+            for (Iterator<Map.Entry<Long, SkyChunk>> it = getQueueUpdateSkyChunks().entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<Long, SkyChunk> entry = it.next();
+                SkyChunk skyChunk = entry.getValue();
+                skyChunk.getPointsOffThread().clear();
+                //skyChunk.setBeingBuilt(true);
+
+                //query to build point map
+                //query to build vbo
+                //test
+                //CULog.log("added point to " + skyChunk.getX() + " - " + skyChunk.getZ());
+                //skyChunk.addPoint(false, 0, 200 / getScale(), 0);
+                Random rand = new Random(5);
+                //skyChunk.addPoint(false, 5, 120, 5);
+                for (int i = 0; i < 50; i++) {
+                    //skyChunk.addPoint(false, i * 2, 120, 0);
+                    //skyChunk.addPoint(false, rand.nextInt(127), 120, rand.nextInt(127));
+                }
+
+
+                if (scale == 1) {
+                    //TODO: note, offsetY + sizeY must never be above 128, maybe do this code block differently, assumes getQueueUpdateSkyChunks doesnt go above or below 0 for y for sky chunks
+                    generateAlgoCloud(skyChunk, 5, 120);
+                } else if (scale == 4) {
+                    generateAlgoCloud(skyChunk, 5, 50);
+                }
+
+                //generateAlgoCloud(skyChunk, 5, cloudsY + 5);
+
+                //remove from update queue
+                it.remove();
+
+                Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
+                this.setCamVec(vecCam);
+
+                skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
+                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
+
+                skyChunk.setLastBuildTime(getTicksVolatile());
+
+                //add to upload queue
+                getQueueWaitingForUploadSkyChunks().put(entry.getKey(), skyChunk);
             }
-
-
-
-            if (scale == 1) {
-                //TODO: note, offsetY + sizeY must never be above 128, maybe do this code block differently, assumes getQueueUpdateSkyChunks doesnt go above or below 0 for y for sky chunks
-                generateAlgoCloud(skyChunk, 5, 120);
-            } else if (scale == 4) {
-                generateAlgoCloud(skyChunk, 5, 50);
-            }
-
-            //generateAlgoCloud(skyChunk, 5, cloudsY + 5);
-
-            //remove from update queue
-            it.remove();
-
-            Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
-            this.setCamVec(vecCam);
-
-            skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
-            skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
-
-            skyChunk.setLastBuildTime(getTicksVolatile());
-
-            //add to upload queue
-            getQueueWaitingForUploadSkyChunks().put(entry.getKey(), skyChunk);
+            setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
         }
         return true;
     }
