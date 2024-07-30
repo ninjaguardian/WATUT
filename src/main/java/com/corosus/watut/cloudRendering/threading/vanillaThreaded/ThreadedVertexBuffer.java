@@ -1,5 +1,6 @@
 package com.corosus.watut.cloudRendering.threading.vanillaThreaded;
 
+import com.corosus.coroutil.util.CULog;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -71,7 +72,9 @@ public class ThreadedVertexBuffer implements AutoCloseable {
             GlStateManager._glBindBuffer(34962, this.vertexBufferId);
          }
 
+         CULog.log("a");
          RenderSystem.glBufferData(34962, p_231220_, this.usage.id);
+         CULog.log("b");
       }
 
       return p_231219_.format();

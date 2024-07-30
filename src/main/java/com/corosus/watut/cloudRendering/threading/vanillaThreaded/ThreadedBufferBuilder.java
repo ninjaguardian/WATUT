@@ -38,6 +38,7 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
    @Nullable
    private VertexSorting sorting;
    private boolean indexOnly;
+   private int lastNextElementByte;
 
    public ThreadedBufferBuilder(int p_85664_) {
       this.buffer = MemoryTracker.create(p_85664_ * 6);
@@ -52,6 +53,7 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
          int i = this.buffer.capacity();
          int j = i + roundUp(p_85723_);
          LOGGER.debug("Needed to grow BufferBuilder buffer: Old size {} bytes, new size {} bytes.", i, j);
+         LOGGER.debug("??? {}", p_85723_);
          ByteBuffer bytebuffer = MemoryTracker.resize(this.buffer, j);
          bytebuffer.rewind();
          this.buffer = bytebuffer;
@@ -201,6 +203,7 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
    }
 
    public ThreadedBufferBuilder.RenderedBuffer end() {
+      this.lastNextElementByte = this.nextElementByte;
       this.ensureDrawing();
       ThreadedBufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
       this.reset();
@@ -469,5 +472,17 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
       this.buffer.position(0);
       this.vertices += buffer.limit() / this.format.getVertexSize();
       this.nextElementByte += buffer.limit();
+   }
+
+   public ByteBuffer getBuffer() {
+      return buffer;
+   }
+
+   public int getLastNextElementByte() {
+      return lastNextElementByte;
+   }
+
+   public int getRenderedBufferCount() {
+      return renderedBufferCount;
    }
 }

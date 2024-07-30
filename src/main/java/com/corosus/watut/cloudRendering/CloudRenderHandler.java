@@ -1,5 +1,6 @@
 package com.corosus.watut.cloudRendering;
 
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.cloudRendering.threading.ThreadedCloudBuilder;
@@ -87,9 +88,9 @@ public class CloudRenderHandler {
             threadedCloudBuilder.setSizeY(30);
             threadedCloudBuilder.setSizeZ(40);
 
-            threadedCloudBuilder.setScale(4);
+            threadedCloudBuilder.setScale(1);
             threadedCloudBuilder.setCloudsY(200 / threadedCloudBuilder.getScale());
-            skyChunkRenderRadius = 1;
+            skyChunkRenderRadius = 0;
 
             //initSkyChunksForGrid();
 
@@ -109,6 +110,8 @@ public class CloudRenderHandler {
                 //renderableData.swapBuffers();
                 renderableData.getActiveRenderingVertexBuffer().bind();
                 renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
+                //WatutMod.threadedBufferBuilder.clear();
+                //renderableData.getVbo().release();
                 skyChunk.setInitialized(true);
                 //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
                 skyChunk.pushNewOffThreadDataToMainThread();
@@ -119,6 +122,8 @@ public class CloudRenderHandler {
                 it.remove();
 
             }
+            CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
+            CULog.log("getRenderedBufferCount " + WatutMod.threadedBufferBuilder.getRenderedBufferCount());
             threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
         }
 

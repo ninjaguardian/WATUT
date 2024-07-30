@@ -248,7 +248,8 @@ public class ThreadedCloudBuilder {
 
                 if (scale == 1) {
                     //TODO: note, offsetY + sizeY must never be above 128, maybe do this code block differently, assumes getQueueUpdateSkyChunks doesnt go above or below 0 for y for sky chunks
-                    generateAlgoCloud(skyChunk, 5, 120);
+                    //generateAlgoCloud(skyChunk, 5, 120);
+                    generateAlgoCloud(skyChunk, 120, 0);
                 } else if (scale == 4) {
                     generateAlgoCloud(skyChunk, 5, 50);
                 }
@@ -413,7 +414,7 @@ public class ThreadedCloudBuilder {
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
-        time = 0;
+        //time = 0;
 
         BlockPos skyChunkWorldPos = skyChunk.getWorldPos();
 
@@ -428,7 +429,8 @@ public class ThreadedCloudBuilder {
                     double scaleP = 10;
                     double noiseVal = perlinNoise.getValue(((indexX) * scaleP) + time, ((indexY) * scaleP) + time,((indexZ) * scaleP) + time)/* + 0.2F*/;
 
-                    float noiseThreshAdj = 0.2F;
+                    //float noiseThreshAdj = 0.2F;
+                    float noiseThreshAdj = 0.1F;
                     if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
                         skyChunk.addPoint(false, x, y + offsetY, z);
                         //SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
