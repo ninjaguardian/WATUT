@@ -4,9 +4,6 @@ import com.corosus.coroutil.util.CULog;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
-
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
@@ -14,37 +11,42 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL33;
+
+import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
 
 @OnlyIn(Dist.CLIENT)
-public class ThreadedVertexBuffer implements AutoCloseable {
-   private final ThreadedVertexBuffer.Usage usage;
+public class ThreadedVertexBufferv2DontUse implements AutoCloseable {
+   private final ThreadedVertexBufferv2DontUse.Usage usage;
    private int vertexBufferId;
-   private int indexBufferId;
+   //private int indexBufferId;
    private int arrayObjectId;
    @Nullable
    private VertexFormat format;
-   @Nullable
+   /*@Nullable
    private RenderSystem.AutoStorageIndexBuffer sequentialIndices;
+   */
    private VertexFormat.IndexType indexType;
    private int indexCount;
    private VertexFormat.Mode mode;
 
-   public ThreadedVertexBuffer(ThreadedVertexBuffer.Usage p_286252_) {
+   public ThreadedVertexBufferv2DontUse(ThreadedVertexBufferv2DontUse.Usage p_286252_) {
       this.usage = p_286252_;
       RenderSystem.assertOnRenderThread();
       this.vertexBufferId = GlStateManager._glGenBuffers();
-      this.indexBufferId = GlStateManager._glGenBuffers();
+      //this.indexBufferId = GlStateManager._glGenBuffers();
       this.arrayObjectId = GlStateManager._glGenVertexArrays();
    }
 
-   public void upload(ThreadedBufferBuilderPersistentStorage.RenderedBuffer p_231222_) {
+   public void upload(ThreadedBufferBuilder.RenderedBuffer p_231222_) {
       if (!this.isInvalid()) {
          RenderSystem.assertOnRenderThread();
 
          try {
-            ThreadedBufferBuilderPersistentStorage.DrawState bufferbuilder$drawstate = p_231222_.drawState();
+            ThreadedBufferBuilder.DrawState bufferbuilder$drawstate = p_231222_.drawState();
             this.format = this.uploadVertexBuffer(bufferbuilder$drawstate, p_231222_.vertexBuffer());
-            this.sequentialIndices = this.uploadIndexBuffer(bufferbuilder$drawstate, p_231222_.indexBuffer());
+            //this.sequentialIndices = this.uploadIndexBuffer(bufferbuilder$drawstate, p_231222_.indexBuffer());
             this.indexCount = bufferbuilder$drawstate.indexCount();
             this.indexType = bufferbuilder$drawstate.indexType();
             this.mode = bufferbuilder$drawstate.mode();
@@ -55,7 +57,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
       }
    }
 
-   private VertexFormat uploadVertexBuffer(ThreadedBufferBuilderPersistentStorage.DrawState p_231219_, ByteBuffer p_231220_) {
+   private VertexFormat uploadVertexBuffer(ThreadedBufferBuilder.DrawState p_231219_, ByteBuffer p_231220_) {
       boolean flag = false;
       if (!p_231219_.format().equals(this.format)) {
          if (this.format != null) {
@@ -80,10 +82,10 @@ public class ThreadedVertexBuffer implements AutoCloseable {
       return p_231219_.format();
    }
 
-   @Nullable
-   private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(ThreadedBufferBuilderPersistentStorage.DrawState p_231224_, ByteBuffer p_231225_) {
+   /*@Nullable
+   private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(ThreadedBufferBuilder.DrawState p_231224_, ByteBuffer p_231225_) {
       if (!p_231224_.sequentialIndex()) {
-         GlStateManager._glBindBuffer(34963, this.indexBufferId);
+         //GlStateManager._glBindBuffer(34963, this.indexBufferId);
          RenderSystem.glBufferData(34963, p_231225_, this.usage.id);
          return null;
       } else {
@@ -94,7 +96,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
 
          return rendersystem$autostorageindexbuffer;
       }
-   }
+   }*/
 
    public void bind() {
       BufferUploader.invalidate();
@@ -107,13 +109,14 @@ public class ThreadedVertexBuffer implements AutoCloseable {
    }
 
    public void draw() {
-      RenderSystem.drawElements(this.mode.asGLMode, this.indexCount, this.getIndexType().asGLType);
+      //RenderSystem.drawElements(this.mode.asGLMode, this.indexCount, this.getIndexType().asGLType);
+      GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, this.indexCount);
    }
 
-   private VertexFormat.IndexType getIndexType() {
+   /*private VertexFormat.IndexType getIndexType() {
       RenderSystem.AutoStorageIndexBuffer rendersystem$autostorageindexbuffer = this.sequentialIndices;
       return rendersystem$autostorageindexbuffer != null ? rendersystem$autostorageindexbuffer.type() : this.indexType;
-   }
+   }*/
 
    public void drawWithShader(Matrix4f p_254480_, Matrix4f p_254555_, ShaderInstance p_253993_) {
       if (!RenderSystem.isOnRenderThread()) {
@@ -197,10 +200,10 @@ public class ThreadedVertexBuffer implements AutoCloseable {
          this.vertexBufferId = -1;
       }
 
-      if (this.indexBufferId >= 0) {
+      /*if (this.indexBufferId >= 0) {
          RenderSystem.glDeleteBuffers(this.indexBufferId);
          this.indexBufferId = -1;
-      }
+      }*/
 
       if (this.arrayObjectId >= 0) {
          RenderSystem.glDeleteVertexArrays(this.arrayObjectId);

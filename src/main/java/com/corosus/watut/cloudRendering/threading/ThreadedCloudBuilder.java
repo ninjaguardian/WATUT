@@ -3,7 +3,7 @@ package com.corosus.watut.cloudRendering.threading;
 import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.*;
 import com.corosus.watut.cloudRendering.*;
-import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
+import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilderPersistentStorage;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -221,7 +221,7 @@ public class ThreadedCloudBuilder {
             return false;
         }
 
-        ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
+        ThreadedBufferBuilderPersistentStorage bufferbuilder = WatutMod.threadedBufferBuilder;
         Vec3 vec3 = new Vec3(0, 0, 0);
 
 
@@ -289,7 +289,7 @@ public class ThreadedCloudBuilder {
 
             rand = new Random(5);
 
-            ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
+            ThreadedBufferBuilderPersistentStorage bufferbuilder = WatutMod.threadedBufferBuilder;
             //timeOffset = this.getTicks();
 
             //clear out old skychunk data
@@ -366,7 +366,7 @@ public class ThreadedCloudBuilder {
         CULog.log("total vbos count: " + SkyChunkManager.instance().getSkyChunks().size());*/
     }
 
-    private ThreadedBufferBuilder.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+    private ThreadedBufferBuilderPersistentStorage.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilderPersistentStorage bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
 
         bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
@@ -414,6 +414,7 @@ public class ThreadedCloudBuilder {
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
+        CULog.log("time: " + time);
         //time = 0;
 
         BlockPos skyChunkWorldPos = skyChunk.getWorldPos();
@@ -441,7 +442,7 @@ public class ThreadedCloudBuilder {
         }
     }
 
-    private void generateCloud(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, RenderableData renderableData, int cloudIndex) {
+    private void generateCloud(ThreadedBufferBuilderPersistentStorage bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, RenderableData renderableData, int cloudIndex) {
         //RenderSystem.setShader(GameRenderer::getPositionTexColorNormalShader);
         //bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
@@ -586,7 +587,7 @@ public class ThreadedCloudBuilder {
         }
     }
 
-    private void buildCloud(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes, RenderableData renderableData, int cloudIndex) {
+    private void buildCloud(ThreadedBufferBuilderPersistentStorage bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale, Cloud cloudShapes, RenderableData renderableData, int cloudIndex) {
         //Vector3f cubePos = new Vector3f(0, 0, 0);
 
 
@@ -702,7 +703,7 @@ public class ThreadedCloudBuilder {
         }
     }
 
-    private void renderCloudCube(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, SkyChunk.SkyChunkPoint cloudPoint) {
+    private void renderCloudCube(ThreadedBufferBuilderPersistentStorage bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, SkyChunk.SkyChunkPoint cloudPoint) {
         pointCount++;
         Quaternionf q2 = new Quaternionf(0, 0, 0, 1);
         Random rand2 = new Random((long) (cubePos.x + cubePos.z));
