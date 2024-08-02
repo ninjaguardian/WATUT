@@ -5,12 +5,9 @@
         "minecraft:diamond"
       ],
       "adjustment": {
-        "mainhandX": "-90",
-        "mainhandY": "-20",
-        "mainhandZ": "-40",
-        "offhandX": "45",
-        "offhandY": "15",
-        "offhandZ": "15"
+        "matchingHandX": "-90",
+        "matchingHandY": "-20",
+        "matchingHandZ": "-40"
       }
     },
     {
@@ -18,8 +15,31 @@
         "minecraft:gold_ingot"
       ],
       "adjustment": {
-        "mainhandX": "DISABLE",
-        "offhandX": "DISABLED"
+        "otherHandX": "45",
+        "otherHandY": "15",
+        "otherHandZ": "15"
+      }
+    },
+    {
+      "filters": [
+        "minecraft:diamond_block"
+      ],
+      "adjustment": {
+        "matchingHandX": "DISABLE",
+        "matchingHandY": "DISABLE",
+        "matchingHandZ": "DISABLE",
+        "otherHandX": "DISABLE",
+        "otherHandY": "DISABLE",
+        "otherHandZ": "DISABLE"
+      }
+    },
+    {
+      "filters": [
+        "artifacts:umbrella"
+      ],
+      "adjustment": {
+        "matchingHandX": "DISABLE",
+        "otherHandX": "DISABLED"
       }
     },
     {
@@ -28,8 +48,18 @@
         "tac:glock_18"
       ],
       "adjustment": {
-        "mainhandX": "DISABLE",
-        "offhandX": "0"
+        "matchingHandX": "DISABLE",
+        "otherHandX": "0"
+      }
+    },
+    {
+      "filters": [
+        "tacz:modern_kinetic_gun",
+        "tac:glock_18"
+      ],
+      "adjustment": {
+        "matchingHandX": "DISABLED",
+        "otherHandX": "DISABLED"
       }
     },
     {
@@ -37,8 +67,8 @@
         "@tac"
       ],
       "adjustment": {
-        "mainhandX": "-90",
-        "offhandX": "0"
+        "matchingHandX": "-90",
+        "otherHandX": "0"
       }
     }
   ]

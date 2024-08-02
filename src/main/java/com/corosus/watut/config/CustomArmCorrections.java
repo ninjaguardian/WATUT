@@ -3,6 +3,7 @@ package com.corosus.watut.config;
 import com.google.gson.Gson;
 import com.ibm.icu.impl.Pair;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
@@ -31,53 +32,63 @@ public class CustomArmCorrections {
         return heldItemArmAdjustmentLists;
     }
 
-    public static Vector3f getAdjustmentForArm(ItemStack stackRightArm, ItemStack stackLeftArm, EquipmentSlot equipmentSlot) {
+    public static Vector3f getAdjustmentForArm(ItemStack stackMainArm, ItemStack stackotherHandArm, EquipmentSlot equipmentSlot) {
         try {
             for (HeldItemArmAdjustment heldItemArmAdjustment : getHeldItemArmAdjustmentLists().getHeldItemArmAdjustments()) {
-                boolean matchRight = filterMatches(heldItemArmAdjustment, stackRightArm);
-                boolean matchLeft = filterMatches(heldItemArmAdjustment, stackLeftArm);
-                boolean matchFound = (matchRight && (equipmentSlot == EquipmentSlot.MAINHAND || heldItemArmAdjustment.isEitherHandMatchAppliesBothHandAdjustments()))
-                || (matchLeft && (equipmentSlot == EquipmentSlot.OFFHAND || heldItemArmAdjustment.isEitherHandMatchAppliesBothHandAdjustments()));
+
+
+                /*boolean shouldMatchmatchingHand = heldItemArmAdjustment.getAdjustment().getmatchingHandX() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandY() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandZ() != "0";
+                boolean shouldMatchotherHand = heldItemArmAdjustment.getAdjustment().getotherHandX() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandY() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandZ() != "0";
+                boolean matchmatchingHand = shouldMatchmatchingHand && filterMatches(heldItemArmAdjustment, stackMainArm);
+                boolean matchotherHand = shouldMatchotherHand && filterMatches(heldItemArmAdjustment, stackMainArm);
+                boolean matchFound = (matchmatchingHand && (equipmentSlot == EquipmentSlot.MAINHAND || heldItemArmAdjustment.isEitherHandMatchAppliesBothHandAdjustments()))
+                || (matchotherHand && (equipmentSlot == EquipmentSlot.OFFHAND || heldItemArmAdjustment.isEitherHandMatchAppliesBothHandAdjustments()));*/
+
+                boolean shouldMatchmatchingHand = heldItemArmAdjustment.getAdjustment().getmatchingHandX() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandY() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandZ() != "0";
+                boolean shouldMatchotherHand = heldItemArmAdjustment.getAdjustment().getotherHandX() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandY() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandZ() != "0";
+                boolean matchmatchingHand = shouldMatchmatchingHand && filterMatches(heldItemArmAdjustment, stackMainArm);
+                boolean matchotherHand = shouldMatchotherHand && filterMatches(heldItemArmAdjustment, stackotherHandArm);
+                boolean matchFound = matchmatchingHand || matchotherHand;
 
                 if (matchFound) {
                     float adjX = 0;
                     float adjY = 0;
                     float adjZ = 0;
-                    if (equipmentSlot == EquipmentSlot.MAINHAND) {
-                        if (heldItemArmAdjustment.getAdjustment().getMainhandX().toLowerCase().startsWith("disable")) {
+                    if (matchmatchingHand) {
+                        if (heldItemArmAdjustment.getAdjustment().getmatchingHandX().toLowerCase().startsWith("disable")) {
                             adjX = Float.MAX_VALUE;
                         } else {
-                            adjX = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getMainhandX());
+                            adjX = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getmatchingHandX());
                         }
-                        if (heldItemArmAdjustment.getAdjustment().getMainhandY().toLowerCase().startsWith("disable")) {
+                        if (heldItemArmAdjustment.getAdjustment().getmatchingHandY().toLowerCase().startsWith("disable")) {
                             adjY = Float.MAX_VALUE;
                         } else {
-                            adjY = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getMainhandY());
+                            adjY = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getmatchingHandY());
                         }
-                        if (heldItemArmAdjustment.getAdjustment().getMainhandZ().toLowerCase().startsWith("disable")) {
+                        if (heldItemArmAdjustment.getAdjustment().getmatchingHandZ().toLowerCase().startsWith("disable")) {
                             adjZ = Float.MAX_VALUE;
                         } else {
-                            adjZ = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getMainhandZ());
+                            adjZ = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getmatchingHandZ());
                         }
-                    } else if (equipmentSlot == EquipmentSlot.OFFHAND) {
-                        if (heldItemArmAdjustment.getAdjustment().getOffhandX().toLowerCase().startsWith("disable")) {
+                    } else if (matchotherHand) {
+                        if (heldItemArmAdjustment.getAdjustment().getotherHandX().toLowerCase().startsWith("disable")) {
                             adjX = Float.MAX_VALUE;
                         } else {
-                            adjX = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getOffhandX());
+                            adjX = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getotherHandX());
                         }
-                        if (heldItemArmAdjustment.getAdjustment().getOffhandY().toLowerCase().startsWith("disable")) {
+                        if (heldItemArmAdjustment.getAdjustment().getotherHandY().toLowerCase().startsWith("disable")) {
                             adjY = Float.MAX_VALUE;
                         } else {
-                            adjY = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getOffhandY());
+                            adjY = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getotherHandY());
                         }
-                        if (heldItemArmAdjustment.getAdjustment().getOffhandZ().toLowerCase().startsWith("disable")) {
+                        if (heldItemArmAdjustment.getAdjustment().getotherHandZ().toLowerCase().startsWith("disable")) {
                             adjZ = Float.MAX_VALUE;
                         } else {
-                            adjZ = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getOffhandZ());
+                            adjZ = Float.parseFloat(heldItemArmAdjustment.getAdjustment().getotherHandZ());
                         }
                     }
 
-                    return new Vector3f(adjX, adjY, adjZ);
+                    return new Vector3f(adjX == Float.MAX_VALUE ? adjX : Mth.DEG_TO_RAD * adjX, adjY == Float.MAX_VALUE ? adjY : Mth.DEG_TO_RAD * adjY, adjZ == Float.MAX_VALUE ? adjZ : Mth.DEG_TO_RAD * adjZ);
 
                     //return Pair.of(vecMain, vecOff);
                 }
@@ -196,67 +207,67 @@ class HeldItemArmAdjustment {
 }
 
 class Adjustment {
-    private String mainhandX = "0";
-    private String offhandX = "0";
-    private String mainhandY = "0";
-    private String offhandY = "0";
-    private String mainhandZ = "0";
-    private String offhandZ = "0";
+    private String matchingHandX = "0";
+    private String otherHandX = "0";
+    private String matchingHandY = "0";
+    private String otherHandY = "0";
+    private String matchingHandZ = "0";
+    private String otherHandZ = "0";
 
     // Getters and setters
-    public String getMainhandX() {
-        return mainhandX;
+    public String getmatchingHandX() {
+        return matchingHandX;
     }
 
-    public void setMainhandX(String mainhandX) {
-        this.mainhandX = mainhandX;
+    public void setmatchingHandX(String matchingHandX) {
+        this.matchingHandX = matchingHandX;
     }
 
-    public String getOffhandX() {
-        return offhandX;
+    public String getotherHandX() {
+        return otherHandX;
     }
 
-    public void setOffhandX(String offhandX) {
-        this.offhandX = offhandX;
+    public void setotherHandX(String otherHandX) {
+        this.otherHandX = otherHandX;
     }
 
-    public String getMainhandY() {
-        return mainhandY;
+    public String getmatchingHandY() {
+        return matchingHandY;
     }
 
-    public void setMainhandY(String mainhandY) {
-        this.mainhandY = mainhandY;
+    public void setmatchingHandY(String matchingHandY) {
+        this.matchingHandY = matchingHandY;
     }
 
-    public String getOffhandY() {
-        return offhandY;
+    public String getotherHandY() {
+        return otherHandY;
     }
 
-    public void setOffhandY(String offhandY) {
-        this.offhandY = offhandY;
+    public void setotherHandY(String otherHandY) {
+        this.otherHandY = otherHandY;
     }
 
-    public String getMainhandZ() {
-        return mainhandZ;
+    public String getmatchingHandZ() {
+        return matchingHandZ;
     }
 
-    public void setMainhandZ(String mainhandZ) {
-        this.mainhandZ = mainhandZ;
+    public void setmatchingHandZ(String matchingHandZ) {
+        this.matchingHandZ = matchingHandZ;
     }
 
-    public String getOffhandZ() {
-        return offhandZ;
+    public String getotherHandZ() {
+        return otherHandZ;
     }
 
-    public void setOffhandZ(String offhandZ) {
-        this.offhandZ = offhandZ;
+    public void setotherHandZ(String otherHandZ) {
+        this.otherHandZ = otherHandZ;
     }
 
     @Override
     public String toString() {
         return "Adjustment{" +
-                "mainhandX='" + mainhandX + '\'' +
-                ", offhandX='" + offhandX + '\'' +
+                "matchingHandX='" + matchingHandX + '\'' +
+                ", otherHandX='" + otherHandX + '\'' +
                 '}';
     }
 }
