@@ -3,7 +3,15 @@ package com.corosus.watut;
 import com.corosus.modconfig.CoroConfigRegistry;
 import com.corosus.watut.config.ConfigClient;
 import com.corosus.watut.config.ConfigCommon;
+import com.corosus.watut.config.CustomArmCorrections;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.players.PlayerList;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public abstract class WatutMod
 {
@@ -34,6 +42,37 @@ public abstract class WatutMod
         instance = this;
         CoroConfigRegistry.instance().addConfigFile(MODID, new ConfigCommon());
         CoroConfigRegistry.instance().addConfigFile(MODID, new ConfigClient());
+
+        generateJsonConfigFile("watut-item-arm-adjustments.json");
+        CustomArmCorrections.loadJsonConfigs();
+    }
+
+    public static void generateJsonConfigFile(String filename) {
+        String filePath = "config/" + filename;
+        String fileContents = getContentsFromResourceLocation(new ResourceLocation(MODID, filePath));
+        if (!fileContents.equals("")) {
+            File fileOut = new File("./config/" + filename);
+            if (!fileOut.exists()) {
+                try {
+                    FileUtils.writeStringToFile(fileOut, fileContents, StandardCharsets.UTF_8);
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static String getContentsFromResourceLocation(ResourceLocation resourceLocation) {
+        try {
+            //server side compatible way
+            String str = "assets/" + resourceLocation.toString().replace(":", "/");
+            InputStream in = WatutMod.class.getClassLoader().getResourceAsStream(str);
+            String contents = IOUtils.toString(in, StandardCharsets.UTF_8);
+            return contents;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return "";
     }
 
     public abstract PlayerList getPlayerList();

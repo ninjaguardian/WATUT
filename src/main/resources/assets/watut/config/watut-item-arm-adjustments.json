@@ -1,0 +1,45 @@
+{
+  "held_item_arm_adjustments": [
+    {
+      "filters": [
+        "minecraft:diamond"
+      ],
+      "adjustment": {
+        "mainhandX": "-90",
+        "mainhandY": "-20",
+        "mainhandZ": "-40",
+        "offhandX": "45",
+        "offhandY": "15",
+        "offhandZ": "15"
+      }
+    },
+    {
+      "filters": [
+        "minecraft:gold_ingot"
+      ],
+      "adjustment": {
+        "mainhandX": "DISABLE",
+        "offhandX": "DISABLED"
+      }
+    },
+    {
+      "filters": [
+        "tac:glock_17",
+        "tac:glock_18"
+      ],
+      "adjustment": {
+        "mainhandX": "DISABLE",
+        "offhandX": "0"
+      }
+    },
+    {
+      "filters": [
+        "@tac"
+      ],
+      "adjustment": {
+        "mainhandX": "-90",
+        "offhandX": "0"
+      }
+    }
+  ]
+}

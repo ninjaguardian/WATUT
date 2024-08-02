@@ -2,9 +2,11 @@ package com.corosus.watut.loader.forge;
 
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
+import com.corosus.watut.command.CommandWatutReloadJSON;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.TickEvent;
@@ -19,6 +21,12 @@ public class EventHandlerForge {
     @OnlyIn(Dist.CLIENT)
     public void guiRender(RenderGuiEvent.Post event) {
         WatutMod.getPlayerStatusManagerClient().onGuiRender();
+    }
+
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public void registerCommandsClient(RegisterClientCommandsEvent event) {
+        CommandWatutReloadJSON.register(event.getDispatcher());
     }
 
     @SubscribeEvent
