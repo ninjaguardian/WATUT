@@ -10,6 +10,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -69,5 +70,10 @@ public class WatutModForge extends WatutMod {
     @Override
     public PlayerList getPlayerList() {
         return ServerLifecycleHooks.getCurrentServer().getPlayerList();
+    }
+
+    @Override
+    public boolean isModInstalled(String modID) {
+        return ModList.get().isLoaded(modID);
     }
 }

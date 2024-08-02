@@ -7,6 +7,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 
 import static net.minecraft.commands.Commands.literal;
 
@@ -16,7 +17,11 @@ public class CommandWatutReloadJSON {
 			Commands.literal(getCommandName())
 			.then(literal("reloadJSON")
 				.executes(context -> {
-					CustomArmCorrections.loadJsonConfigs();
+					if (CustomArmCorrections.loadJsonConfigs()) {
+						context.getSource().sendSuccess(() -> Component.literal("Reloaded " + WatutMod.configJSONName), true);
+					} else {
+						context.getSource().sendSuccess(() -> Component.literal("Failed to load " + WatutMod.configJSONName + ", check for format errors"), true);
+					}
 					return Command.SINGLE_SUCCESS;
 				})
 			)

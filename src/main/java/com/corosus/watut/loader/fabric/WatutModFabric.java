@@ -36,4 +36,9 @@ public class WatutModFabric extends WatutMod implements ModInitializer {
 	public PlayerList getPlayerList() {
 		return minecraftServer.getPlayerList();
 	}
+
+	@Override
+	public boolean isModInstalled(String modID) {
+		return FabricLoader.getInstance().isModLoaded(modID);
+	}
 }

@@ -58,6 +58,9 @@ public class ConfigClient implements IConfigCategory {
     @ConfigComment("String to use when too many people are typing determined by screenTypingCharacterLimit")
     public static String screenTypingMultiplePlayersText = "Several people are typing";
 
+    @ConfigComment("String to use next to the typing player(s) name")
+    public static String screenTypingText = " is typing";
+
     @ConfigComment("Plays a sound when a player opens some Guis")
     public static boolean playScreenOpenSounds = true;
 

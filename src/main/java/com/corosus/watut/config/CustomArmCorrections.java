@@ -1,5 +1,6 @@
 package com.corosus.watut.config;
 
+import com.corosus.watut.WatutMod;
 import com.google.gson.Gson;
 import com.ibm.icu.impl.Pair;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,16 +17,16 @@ public class CustomArmCorrections {
 
     private static HeldItemArmAdjustmentLists heldItemArmAdjustmentLists = null;
 
-    public static void loadJsonConfigs() {
+    public static boolean loadJsonConfigs() {
         Gson gson = new Gson();
-        try (FileReader reader = new FileReader("./config/watut-item-arm-adjustments.json")) {
+        try (FileReader reader = new FileReader("./config/" + WatutMod.configJSONName)) {
             heldItemArmAdjustmentLists = gson.fromJson(reader, HeldItemArmAdjustmentLists.class);
-
-            // Use the parsed object
-            //System.out.println(heldItemArmAdjustmentLists);
         } catch (IOException e) {
+            System.out.println("FAILED TO LOAD watut-item-arm-adjustments.json, check its formatting!");
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
     public static HeldItemArmAdjustmentLists getHeldItemArmAdjustmentLists() {
@@ -33,22 +34,16 @@ public class CustomArmCorrections {
     }
 
     public static Vector3f getAdjustmentForArm(ItemStack stackMainArm, ItemStack stackotherHandArm, EquipmentSlot equipmentSlot) {
+        if (getHeldItemArmAdjustmentLists() == null) return new Vector3f(0, 0, 0);
         try {
             for (HeldItemArmAdjustment heldItemArmAdjustment : getHeldItemArmAdjustmentLists().getHeldItemArmAdjustments()) {
-
-
-                /*boolean shouldMatchmatchingHand = heldItemArmAdjustment.getAdjustment().getmatchingHandX() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandY() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandZ() != "0";
-                boolean shouldMatchotherHand = heldItemArmAdjustment.getAdjustment().getotherHandX() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandY() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandZ() != "0";
-                boolean matchmatchingHand = shouldMatchmatchingHand && filterMatches(heldItemArmAdjustment, stackMainArm);
-                boolean matchotherHand = shouldMatchotherHand && filterMatches(heldItemArmAdjustment, stackMainArm);
-                boolean matchFound = (matchmatchingHand && (equipmentSlot == EquipmentSlot.MAINHAND || heldItemArmAdjustment.isEitherHandMatchAppliesBothHandAdjustments()))
-                || (matchotherHand && (equipmentSlot == EquipmentSlot.OFFHAND || heldItemArmAdjustment.isEitherHandMatchAppliesBothHandAdjustments()));*/
 
                 boolean shouldMatchmatchingHand = heldItemArmAdjustment.getAdjustment().getmatchingHandX() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandY() != "0" || heldItemArmAdjustment.getAdjustment().getmatchingHandZ() != "0";
                 boolean shouldMatchotherHand = heldItemArmAdjustment.getAdjustment().getotherHandX() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandY() != "0" || heldItemArmAdjustment.getAdjustment().getotherHandZ() != "0";
                 boolean matchmatchingHand = shouldMatchmatchingHand && filterMatches(heldItemArmAdjustment, stackMainArm);
                 boolean matchotherHand = shouldMatchotherHand && filterMatches(heldItemArmAdjustment, stackotherHandArm);
-                boolean matchFound = matchmatchingHand || matchotherHand;
+                boolean modIDMatches = heldItemArmAdjustment.getOnly_if_mod_installed().equals("") || WatutMod.instance().isModInstalled(heldItemArmAdjustment.getOnly_if_mod_installed());
+                boolean matchFound = (matchmatchingHand || matchotherHand) && modIDMatches;
 
                 if (matchFound) {
                     float adjX = 0;
@@ -89,8 +84,6 @@ public class CustomArmCorrections {
                     }
 
                     return new Vector3f(adjX == Float.MAX_VALUE ? adjX : Mth.DEG_TO_RAD * adjX, adjY == Float.MAX_VALUE ? adjY : Mth.DEG_TO_RAD * adjY, adjZ == Float.MAX_VALUE ? adjZ : Mth.DEG_TO_RAD * adjZ);
-
-                    //return Pair.of(vecMain, vecOff);
                 }
             }
         } catch (Exception ex) {
@@ -104,7 +97,9 @@ public class CustomArmCorrections {
         //using OR logic
         boolean matchFound = false;
         for (String filter : heldItemArmAdjustment.getFilters()) {
-            String fullname = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();//stack.getItem().get.toString();
+            String fullname = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+
+            if (fullname.matches("minecraft:air")) continue;
 
             String modID = fullname.split(":")[0];
             String name = fullname.split(":")[1];
@@ -130,13 +125,13 @@ public class CustomArmCorrections {
                     break;
                 }
             } else if (filter.startsWith("*")) {
-                String search = fullname.replace("*", "");
+                String search = filter.replace("*", "");
                 if (fullname.endsWith(search)) {
                     matchFound = true;
                     break;
                 }
             } else if (filter.endsWith("*")) {
-                String search = fullname.replace("*", "");
+                String search = filter.replace("*", "");
                 if (fullname.startsWith(search)) {
                     matchFound = true;
                     break;
@@ -170,16 +165,7 @@ class HeldItemArmAdjustmentLists {
 class HeldItemArmAdjustment {
     private List<String> filters;
     private Adjustment adjustment;
-    private boolean eitherHandMatchAppliesBothHandAdjustments = false;
-
-    // Getters and setters
-    public boolean isEitherHandMatchAppliesBothHandAdjustments() {
-        return eitherHandMatchAppliesBothHandAdjustments;
-    }
-
-    public void setEitherHandMatchAppliesBothHandAdjustments(boolean eitherHandMatchAppliesBothHandAdjustments) {
-        this.eitherHandMatchAppliesBothHandAdjustments = eitherHandMatchAppliesBothHandAdjustments;
-    }
+    private String only_if_mod_installed = "";
 
     public List<String> getFilters() {
         return filters;
@@ -195,6 +181,14 @@ class HeldItemArmAdjustment {
 
     public void setAdjustment(Adjustment adjustment) {
         this.adjustment = adjustment;
+    }
+
+    public String getOnly_if_mod_installed() {
+        return only_if_mod_installed;
+    }
+
+    public void setOnly_if_mod_installed(String only_if_mod_installed) {
+        this.only_if_mod_installed = only_if_mod_installed;
     }
 
     @Override

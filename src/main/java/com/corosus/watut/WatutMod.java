@@ -22,6 +22,8 @@ public abstract class WatutMod
     private static PlayerStatusManagerClient playerStatusManagerClient = null;
     private static PlayerStatusManagerServer playerStatusManagerServer = null;
 
+    public static String configJSONName = "watut-item-arm-adjustments.json";
+
     private static WatutMod instance;
 
     public static WatutMod instance() {
@@ -43,7 +45,7 @@ public abstract class WatutMod
         CoroConfigRegistry.instance().addConfigFile(MODID, new ConfigCommon());
         CoroConfigRegistry.instance().addConfigFile(MODID, new ConfigClient());
 
-        generateJsonConfigFile("watut-item-arm-adjustments.json");
+        generateJsonConfigFile(configJSONName);
         CustomArmCorrections.loadJsonConfigs();
     }
 
@@ -80,4 +82,6 @@ public abstract class WatutMod
     public static void dbg(Object obj) {
         //System.out.println("" + obj);
     }
+
+    public abstract boolean isModInstalled(String modID);
 }

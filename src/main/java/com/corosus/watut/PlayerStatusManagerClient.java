@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.PlayerTabOverlay;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.DeathScreen;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.*;
@@ -166,7 +167,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                 sendGuiStatus(PlayerStatus.PlayerGuiState.VILLAGER);
             } else if (mc.screen instanceof AbstractCommandBlockEditScreen) {
                 sendGuiStatus(PlayerStatus.PlayerGuiState.COMMAND_BLOCK);
-            } else if (mc.screen != null) {
+            } else if (mc.screen != null && !(mc.screen instanceof DeathScreen)) {
                 sendGuiStatus(PlayerStatus.PlayerGuiState.MISC);
             } else if (mc.screen == null) {
                 sendGuiStatus(PlayerStatus.PlayerGuiState.NONE);
@@ -437,7 +438,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
         if (playersLengthStr > ConfigClient.screenTypingCharacterLimit) {
             str = ConfigClient.screenTypingMultiplePlayersText + anim;
         } else if (str.length() > 2) {
-            str = str.substring(0, str.length() - 2) + " is typing" + anim;
+            str = str.substring(0, str.length() - 2) + ConfigClient.screenTypingText + anim;
         }
         return str;
     }
@@ -485,7 +486,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
 
         double quadSize = 0.3F + Math.sin((stableTime / 10F) % 360) * 0.01F;
 
-        if (shouldAnimate(player)) {
+        if (shouldAnimate(player) && !player.isInvisible()) {
             if (idleParticleChangeOrGone) {
                 if (ConfigClient.showIdleStatesInPlayerAboveHead && playerStatus.isIdle()) {
                     ParticleRotating particle = new ParticleStatic((ClientLevel) player.level(), player.position().x, player.position().y + idleY, player.position().z, ParticleRegistry.idle.getSprite());
