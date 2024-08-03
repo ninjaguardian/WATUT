@@ -13,11 +13,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.*;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -32,14 +29,31 @@ public class WatutNetworkingForge extends WatutNetworking {
 
     public WatutNetworkingForge() {
         super();
+        init();
     }
 
-    public static final SimpleChannel HANDLER = NetworkRegistry.ChannelBuilder
+    public static SimpleChannel HANDLER;
+
+    /*public static final SimpleChannel HANDLER = NetworkRegistry.ChannelBuilder
             .named(NETWORK_CHANNEL_ID_MAIN)
             .clientAcceptedVersions(PROTOCOL_VERSION::equals)
             .serverAcceptedVersions(PROTOCOL_VERSION::equals)
             .networkProtocolVersion(() -> PROTOCOL_VERSION)
-            .simpleChannel();
+            .simpleChannel();*/
+
+    public static void init() {
+        ChannelBuilder channelBuilder = ChannelBuilder.named(name).networkProtocolVersion(PROTOCOL_VERSION);
+        HANDLER = channelBuilder.simpleChannel();
+        HANDLER.messageBuilder(PacketPayload.class)
+                .encoder(PacketPayload::write)
+                .decoder(this::readPacket)
+                .consumerNetworkThread((payload, context) -> {
+                    Player player = context.isServerSide() ? context.getSender() : getPlayer();
+                    payload.process(player).ifPresent(context::enqueueWork);
+                    context.setPacketHandled(true);
+                })
+                .add();
+    }
 
     public static void register() {
         registerMessage(PacketNBTFromServer.class, PacketNBTFromServer::encode, PacketNBTFromServer::decode, PacketNBTFromServer.Handler::handle, NetworkDirection.PLAY_TO_CLIENT);
