@@ -1,11 +1,9 @@
 package com.corosus.watut.mixin.client;
 
 import com.corosus.watut.WatutMod;
-import com.corosus.watut.client.ScreenCapturing;
 import com.corosus.watut.client.screen.RenderHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

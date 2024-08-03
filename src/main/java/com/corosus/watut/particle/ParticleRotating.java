@@ -1,6 +1,5 @@
 package com.corosus.watut.particle;
 
-import com.corosus.watut.client.ScreenCapturing;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;

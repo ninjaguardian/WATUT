@@ -898,11 +898,11 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
 
     public Vec3 getParticlePosition(Player player) {
         Vec3 pos = player.position();
-        //float distFromFace = 0.75F;
-        float distFromFace = -3.5F;
+        float distFromFace = 0.75F;
+        //float distFromFace = -3.5F;
         Vec3 lookVec = getBodyAngle(player).scale(distFromFace);
-        //return new Vec3(pos.x + lookVec.x, pos.y + 1.2D, pos.z + lookVec.z);
-        return new Vec3(pos.x + lookVec.x, pos.y + 2D, pos.z + lookVec.z);
+        return new Vec3(pos.x + lookVec.x, pos.y + 1.2D, pos.z + lookVec.z);
+        //return new Vec3(pos.x + lookVec.x, pos.y + 2D, pos.z + lookVec.z);
     }
 
     public Vec3 getBodyAngle(Player player) {
@@ -1019,12 +1019,12 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
             nbtRenderCalls.put("renderCall_" + renderCallIndex, nbtRenderCall);
             renderCallIndex++;
 
-            System.out.println("client pack sent params: " + renderCall.getListParams());
+            //System.out.println("client pack sent params: " + renderCall.getListParams());
         }
 
         data.put(WatutNetworking.NBTDataPlayerScreenRenderCalls, nbtRenderCalls);
 
-        System.out.println("send screen data");
+        //System.out.println("send screen data");
 
         WatutNetworking.instance().clientSendToServer(data);
     }

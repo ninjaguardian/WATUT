@@ -50,7 +50,7 @@ public class ScreenData {
         mainRenderTarget.clear(Minecraft.ON_OSX);
 
         //System.out.println("init with resolution: " + width + "x" + height);
-        System.out.println("init new framebuffer, texture id: " + mainRenderTarget.getColorTextureId());
+        //System.out.println("init new framebuffer, texture id: " + mainRenderTarget.getColorTextureId());
 
         this.particleRenderType = new ParticleRenderType() {
             public void begin(BufferBuilder p_107455_, TextureManager p_107456_) {
@@ -86,12 +86,12 @@ public class ScreenData {
     public void startCapture() {
         listRenderCalls.clear();
         isCapturing = true;
-        System.out.println("capture started");
+        //System.out.println("capture started");
     }
 
     public void stopCapture() {
         isCapturing = false;
-        System.out.println("capture stopped - captured call count: " + listRenderCalls.size());
+        //System.out.println("capture stopped - captured call count: " + listRenderCalls.size());
     }
 
     public void addRenderCall(RenderCall renderCall) {
