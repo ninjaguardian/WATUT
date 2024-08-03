@@ -1,5 +1,7 @@
 package com.corosus.watut;
 
+import com.corosus.watut.client.screen.RenderCall;
+import com.corosus.watut.client.screen.RenderCallType;
 import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.config.ConfigClient;
 import com.corosus.watut.config.CustomArmCorrections;

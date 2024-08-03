@@ -1,5 +1,6 @@
 package com.corosus.watut;
 
+import com.corosus.watut.client.screen.ScreenData;
 import com.corosus.watut.math.Lerpables;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.nbt.CompoundTag;
@@ -128,12 +129,10 @@ public class PlayerStatus {
     //for partial ticks
     public float lerpTicksPrev = 0;
     public float lerpTicksMax = 5;
-
     public float lastPartialTick = 0;
 
     public float yRotHeadWhileOverriding = 0;
     public float xRotHeadWhileOverriding = 0;
-
     public float yRotHeadBeforeOverriding = 0;
     public float xRotHeadBeforeOverriding = 0;
 
@@ -141,8 +140,12 @@ public class PlayerStatus {
 
     private CompoundTag nbtCache = new CompoundTag();
 
+    private ScreenData screenData = new ScreenData();
+    private PlayerGuiState lastScreenCaptured = PlayerGuiState.NONE;
+
     public PlayerStatus(PlayerGuiState playerGuiState) {
         this.playerGuiState = playerGuiState;
+        this.screenData.init();
     }
 
     public void tick() {
@@ -343,5 +346,21 @@ public class PlayerStatus {
 
     public void setPlayerChatState(PlayerChatState playerChatState) {
         this.playerChatState = playerChatState;
+    }
+
+    public ScreenData getScreenData() {
+        return screenData;
+    }
+
+    public void setScreenData(ScreenData screenData) {
+        this.screenData = screenData;
+    }
+
+    public PlayerGuiState getLastScreenCaptured() {
+        return lastScreenCaptured;
+    }
+
+    public void setLastScreenCaptured(PlayerGuiState lastScreenCaptured) {
+        this.lastScreenCaptured = lastScreenCaptured;
     }
 }

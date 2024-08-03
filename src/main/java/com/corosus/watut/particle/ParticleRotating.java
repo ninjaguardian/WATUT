@@ -32,6 +32,8 @@ public abstract class ParticleRotating extends TextureSheetParticle {
         public void begin(BufferBuilder p_107455_, TextureManager p_107456_) {
             RenderSystem.depthMask(true);
             RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
+            //RenderSystem.bindTexture(ScreenCapturing.mainRenderTarget.getColorTextureId());
+            //RenderSystem._setShaderTexture(0, ScreenCapturing.mainRenderTarget.getColorTextureId());
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableCull();
@@ -90,9 +92,9 @@ public abstract class ParticleRotating extends TextureSheetParticle {
 
     public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
         Vec3 vec3 = pRenderInfo.getPosition();
-        float f = (float)(Mth.lerp((double)pPartialTicks, this.xo, this.x) - vec3.x());
-        float f1 = (float)(Mth.lerp((double)pPartialTicks, this.yo, this.y) - vec3.y());
-        float f2 = (float)(Mth.lerp((double)pPartialTicks, this.zo, this.z) - vec3.z());
+        float f = (float)(Mth.lerp(pPartialTicks, this.xo, this.x) - vec3.x());
+        float f1 = (float)(Mth.lerp(pPartialTicks, this.yo, this.y) - vec3.y());
+        float f2 = (float)(Mth.lerp(pPartialTicks, this.zo, this.z) - vec3.z());
         Quaternionf quaternion;
         if (useCustomRotation) {
             quaternion = new Quaternionf(0, 0, 0, 1);
@@ -118,15 +120,16 @@ public abstract class ParticleRotating extends TextureSheetParticle {
             vector3f.add(f, f1, f2);
         }
 
-        float f6 = this.getU0();
-        float f7 = this.getU1();
-        float f4 = this.getV0();
-        float f5 = this.getV1();
+        float u0 = this.getU0();
+        float u1 = this.getU1();
+        float v0 = this.getV0();
+        float v1 = this.getV1();
+
         int j = this.getLightColor(pPartialTicks);
-        pBuffer.vertex((double)avector3f[0].x(), (double)avector3f[0].y(), (double)avector3f[0].z()).uv(f7, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        pBuffer.vertex((double)avector3f[1].x(), (double)avector3f[1].y(), (double)avector3f[1].z()).uv(f7, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        pBuffer.vertex((double)avector3f[2].x(), (double)avector3f[2].y(), (double)avector3f[2].z()).uv(f6, f4).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
-        pBuffer.vertex((double)avector3f[3].x(), (double)avector3f[3].y(), (double)avector3f[3].z()).uv(f6, f5).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z()).uv(u1, v1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z()).uv(u1, v0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z()).uv(u0, v0).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
+        pBuffer.vertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z()).uv(u0, v1).color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(j).endVertex();
     }
 
     public void setPosPrev(double pX, double pY, double pZ) {
