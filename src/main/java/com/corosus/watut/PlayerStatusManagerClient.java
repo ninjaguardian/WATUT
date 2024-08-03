@@ -504,9 +504,9 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                     if (PlayerStatus.PlayerGuiState.isTypingGui(this.getStatus(player).getPlayerGuiState())) {
                         if (this.getStatus(player).getPlayerChatState() == PlayerStatus.PlayerChatState.CHAT_FOCUSED) {
                             particle = new ParticleAnimated((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.chat_idle.getSpriteSet());
-                            /*if (playerStatus.getScreenData().getParticleRenderType() != null) {
+                            if (playerStatus.getScreenData().getParticleRenderType() != null) {
                                 particle = new ParticleDynamic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, playerStatus.getScreenData().getParticleRenderType(), 0.7F);
-                            }*/
+                            }
                         } else if (this.getStatus(player).getPlayerChatState() == PlayerStatus.PlayerChatState.CHAT_TYPING) {
                             particle = new ParticleAnimated((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.chat_typing.getSpriteSet());
                         }
@@ -898,9 +898,11 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
 
     public Vec3 getParticlePosition(Player player) {
         Vec3 pos = player.position();
-        float distFromFace = 0.75F;
+        //float distFromFace = 0.75F;
+        float distFromFace = -3.5F;
         Vec3 lookVec = getBodyAngle(player).scale(distFromFace);
-        return new Vec3(pos.x + lookVec.x, pos.y + 1.2D, pos.z + lookVec.z);
+        //return new Vec3(pos.x + lookVec.x, pos.y + 1.2D, pos.z + lookVec.z);
+        return new Vec3(pos.x + lookVec.x, pos.y + 2D, pos.z + lookVec.z);
     }
 
     public Vec3 getBodyAngle(Player player) {
@@ -1143,14 +1145,14 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                     RenderCall renderCall = new RenderCall(renderCallType);
                     renderCall.getListParams().addAll(listParams);
                     status.getScreenData().addRenderCall(renderCall);
-                    System.out.println("client pack received params: " + listParams.size());
+                    //System.out.println("client pack received params: " + listParams.size());
                 } else {
                     break;
                 }
                 renderCallIndex++;
             }
             status.getScreenData().markNeedsNewRender(true);
-            System.out.println("received screen data");
+            //System.out.println("received screen data");
         }
     }
 

@@ -23,7 +23,13 @@ public class RenderHelper {
             lookupRenderCallsToMethod.put(RenderCallType.INNER_BLIT, GuiGraphics.class.getDeclaredMethod("innerBlit", ResourceLocation.class, int.class, int.class, int.class, int.class, int.class, float.class, float.class, float.class, float.class));
             lookupRenderCallsToMethod.put(RenderCallType.INNER_BLIT2, GuiGraphics.class.getDeclaredMethod("innerBlit", ResourceLocation.class, int.class, int.class, int.class, int.class, int.class, float.class, float.class, float.class, float.class, float.class, float.class, float.class, float.class));
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+            System.out.println("fallback to obfuscated lookup");
+            try {
+                lookupRenderCallsToMethod.put(RenderCallType.INNER_BLIT, GuiGraphics.class.getDeclaredMethod("m_280444_", ResourceLocation.class, int.class, int.class, int.class, int.class, int.class, float.class, float.class, float.class, float.class));
+                lookupRenderCallsToMethod.put(RenderCallType.INNER_BLIT2, GuiGraphics.class.getDeclaredMethod("m_280479_", ResourceLocation.class, int.class, int.class, int.class, int.class, int.class, float.class, float.class, float.class, float.class, float.class, float.class, float.class, float.class));
+            } catch (NoSuchMethodException e2) {
+                throw new RuntimeException(e2);
+            }
         }
     }
 
@@ -46,9 +52,35 @@ public class RenderHelper {
                 screenData.getMainRenderTarget().clear(Minecraft.ON_OSX);*/
                 //GL30.glClearBufferfi();
 
-                System.out.println("rendering");
+                int biggestUVRenderCallIndex = -1;
+                float biggest = 0;
+                for (int i = 0; i < screenData.getListRenderCalls().size(); i++) {
+                    RenderCall renderCall = screenData.getListRenderCalls().get(i);
+                    float x1 = (int) renderCall.getListParams().get(1);
+                    float x2 = (int) renderCall.getListParams().get(2);
+                    float y1 = (int) renderCall.getListParams().get(3);
+                    float y2 = (int) renderCall.getListParams().get(4);
+                    float minU = (float) renderCall.getListParams().get(6);
+                    float maxU = (float) renderCall.getListParams().get(7);
+                    float minV = (float) renderCall.getListParams().get(8);
+                    float maxV = (float) renderCall.getListParams().get(9);
+                    float effectiveSizeX = (x2 - x1) * (maxU - minU);
+                    float effectiveSizeY = (y2 - y1) * (maxV - minV);
+                    //not a perfect solution, id like to have size of texture that the UV fraction is applied to, but thats a pain to get
+                    //i know most screen guis are mostly just the main gui for bound texture and its often the biggest part
+                    //float sizeUV = (maxU - minU) + (maxV - minV);
+                    float effectiveSize = effectiveSizeX + effectiveSizeY;
+                    if (effectiveSize > biggest) {
+                        biggestUVRenderCallIndex = i;
+                        biggest = effectiveSize;
+                    }
+                }
+
+                System.out.println("rendering biggest: " + biggest);
                 int i = 0;
-                for (RenderCall renderCall : screenData.getListRenderCalls()) {
+                if (biggestUVRenderCallIndex != -1) {
+                //for (RenderCall renderCall : screenData.getListRenderCalls()) {
+                    RenderCall renderCall = screenData.getListRenderCalls().get(biggestUVRenderCallIndex);
                     List<Object> listParams = renderCall.getListParams();
                     System.out.println("params size before render: " + listParams);
                     try {
