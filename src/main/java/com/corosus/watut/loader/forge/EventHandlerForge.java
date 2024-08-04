@@ -7,7 +7,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -16,12 +15,6 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = WatutMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class EventHandlerForge {
-
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public void guiRender(RenderGuiEvent.Post event) {
-        WatutMod.getPlayerStatusManagerClient().onGuiRender();
-    }
 
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)

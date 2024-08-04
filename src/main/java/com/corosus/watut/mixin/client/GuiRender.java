@@ -14,8 +14,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Gui.class)
 public abstract class GuiRender {
 
-    @Inject(method = "render", at = @At("TAIL"))
+    /*@Inject(method = "render", at = @At("TAIL"))
     private void render(GuiGraphics pGuiGraphics, float pPartialTick, CallbackInfo info) {
+        WatutMod.getPlayerStatusManagerClient().onGuiRender();
+    }*/
+
+    @Inject(method = "renderChat", at = @At("TAIL"))
+    private void render(GuiGraphics p_329202_, float p_328014_, CallbackInfo info) {
         WatutMod.getPlayerStatusManagerClient().onGuiRender();
     }
 }

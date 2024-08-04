@@ -2,7 +2,7 @@ package com.corosus.watut.loader.fabric;
 
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.WatutNetworking;
-import com.corosus.watut.loader.fabric.WatutModFabric;
+import com.corosus.watut.network.PacketNBTRecord;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -28,7 +28,8 @@ public class WatutNetworkingFabric extends WatutNetworking {
     public void clientSendToServer(CompoundTag data) {
         FriendlyByteBuf buf = PacketByteBufs.create();
         buf.writeNbt(data);
-        ClientPlayNetworking.send(NBT_PACKET_ID, buf);
+        //ClientPlayNetworking.send(NBT_PACKET_ID, buf);
+        ClientPlayNetworking.send(new PacketNBTRecord(data));
     }
 
     @Override
@@ -36,7 +37,8 @@ public class WatutNetworkingFabric extends WatutNetworking {
         FriendlyByteBuf buf = PacketByteBufs.create();
         buf.writeNbt(data);
         for (ServerPlayer player : PlayerLookup.all(WatutModFabric.minecraftServer)) {
-            ServerPlayNetworking.send(player, NBT_PACKET_ID, buf);
+            //ServerPlayNetworking.send(player, NBT_PACKET_ID, buf);
+            ServerPlayNetworking.send(player, new PacketNBTRecord(data));
         }
         //HANDLER.send(PacketDistributor.ALL.noArg(), new PacketNBTFromServer(data));
     }
@@ -45,8 +47,9 @@ public class WatutNetworkingFabric extends WatutNetworking {
     public void serverSendToClientPlayer(CompoundTag data, Player player) {
         FriendlyByteBuf buf = PacketByteBufs.create();
         buf.writeNbt(data);
-        ServerPlayNetworking.send((ServerPlayer) player, NBT_PACKET_ID, buf);
         //HANDLER.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new PacketNBTFromServer(data));
+        //ServerPlayNetworking.send((ServerPlayer) player, NBT_PACKET_ID, buf);
+        ServerPlayNetworking.send((ServerPlayer) player, new PacketNBTRecord(data));
     }
 
     @Override
@@ -54,7 +57,8 @@ public class WatutNetworkingFabric extends WatutNetworking {
         FriendlyByteBuf buf = PacketByteBufs.create();
         buf.writeNbt(data);
         for (ServerPlayer player : PlayerLookup.around((ServerLevel) level, pos, dist)) {
-            ServerPlayNetworking.send(player, NBT_PACKET_ID, buf);
+            //ServerPlayNetworking.send(player, NBT_PACKET_ID, buf);
+            ServerPlayNetworking.send(player, new PacketNBTRecord(data));
         }
         /*HANDLER.send(PacketDistributor.NEAR.with(() ->
                         new PacketDistributor.TargetPoint(pos.x, pos.y, pos.z, dist, dimension)),
