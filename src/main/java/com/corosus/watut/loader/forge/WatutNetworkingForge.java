@@ -48,7 +48,7 @@ public class WatutNetworkingForge extends WatutNetworking {
     }
 
     public static <T extends PacketBase> void registerServerboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, FriendlyByteBuf> writer, Function<FriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args) {
-        BiConsumer<T, CustomPayloadEvent.Context> serverHandler = (packet, ctx) -> {
+        /*BiConsumer<T, CustomPayloadEvent.Context> serverHandler = (packet, ctx) -> {
             if(ctx.getDirection().getReceptionSide().isServer())
             {
                 ctx.setPacketHandled(true);
@@ -62,12 +62,12 @@ public class WatutNetworkingForge extends WatutNetworking {
                 .encoder(writer)
                 .decoder(reader)
                 .consumerMainThread(serverHandler)
-                .add();
+                .add();*/
     }
 
     public static <T extends PacketBase> void registerClientboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, FriendlyByteBuf> writer, Function<FriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args)
     {
-        BiConsumer<T, CustomPayloadEvent.Context> clientHandler = (packet, ctx) -> {
+        /*BiConsumer<T, CustomPayloadEvent.Context> clientHandler = (packet, ctx) -> {
             if(ctx.getDirection().getReceptionSide().isClient())
             {
                 ctx.setPacketHandled(true);
@@ -81,7 +81,7 @@ public class WatutNetworkingForge extends WatutNetworking {
                 .encoder(writer)
                 .decoder(reader)
                 .consumerMainThread(clientHandler)
-                .add();
+                .add();*/
     }
 
     @Override

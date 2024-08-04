@@ -18,8 +18,6 @@ import net.minecraft.world.phys.Vec3;
 
 public class WatutNetworkingFabric extends WatutNetworking {
 
-    public static final ResourceLocation NBT_PACKET_ID = new ResourceLocation(WatutMod.MODID, "nbt");
-
     public WatutNetworkingFabric() {
         super();
     }
