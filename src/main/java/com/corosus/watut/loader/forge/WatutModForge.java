@@ -3,6 +3,7 @@ package com.corosus.watut.loader.forge;
 import com.corosus.watut.WatutMod;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.players.PlayerList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -15,11 +16,15 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.ChannelBuilder;
+import net.minecraftforge.network.SimpleChannel;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 @Mod(WatutModForge.MODID)
 public class WatutModForge extends WatutMod {
-	
+
+    //public static SimpleChannel network;
+
     public WatutModForge() {
         super();
         new WatutNetworkingForge();

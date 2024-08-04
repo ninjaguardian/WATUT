@@ -523,7 +523,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                     float brightness = 0.7F;
                     int subSizeX = 0;
                     int subSizeY = 0;
-                    boolean newRender = false;
+                    boolean newRender = true;
                     if (newRender) {
                         if (this.getStatus(player).getPlayerGuiState() != PlayerStatus.PlayerGuiState.NONE && this.getStatus(player).getPlayerGuiState() != PlayerStatus.PlayerGuiState.CHAT_SCREEN) {
                             if (playerStatus.getScreenData().getParticleRenderType() != null) {
@@ -540,10 +540,10 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.CHEST) {
                             particle = new ParticleStaticLoD((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.chest.getSpriteSet());
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.EDIT_BOOK) {
-                            particle = new ParticleStatic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.book.getSprite(), 0.7F);
-                            /*if (playerStatus.getScreenData().getParticleRenderType() != null) {
+                            //particle = new ParticleStatic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.book.getSprite(), 0.7F);
+                            if (playerStatus.getScreenData().getParticleRenderType() != null) {
                                 particle = new ParticleDynamic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, playerStatus.getScreenData().getParticleRenderType(), 0.7F);
-                            }*/
+                            }
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.EDIT_SIGN) {
                             particle = new ParticleStatic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.sign.getSprite(), 0.7F);
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.ENCHANTING_TABLE) {
@@ -1159,7 +1159,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
 
         if (data.contains(WatutNetworking.NBTDataPlayerScreenRenderCalls)) {
             status.getScreenData().getListRenderCalls().clear();
-            System.out.println("receiving screen data");
+            //System.out.println("receiving screen data");
             CompoundTag nbtRenderCalls = data.getCompound(WatutNetworking.NBTDataPlayerScreenRenderCalls);
             int renderCallIndex = 0;
             while (true) {

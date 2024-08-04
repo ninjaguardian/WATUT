@@ -85,7 +85,8 @@ public class ParticleDynamic extends ParticleRotating {
         for(int i = 0; i < 4; ++i) {
             Vector3f vector3f = avector3f[i];
             vector3f.rotate(quaternion);
-            vector3f.mul(f3 * 3F);
+            //vector3f.mul(f3 * 3F);
+            vector3f.mul(f3 * 7F);
             vector3f.add(f, f1, f2);
         }
 

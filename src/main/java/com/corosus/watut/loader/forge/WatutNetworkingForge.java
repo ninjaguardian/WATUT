@@ -1,92 +1,107 @@
 package com.corosus.watut.loader.forge;
 
 import com.corosus.watut.WatutMod;
+import com.corosus.watut.WatutModClient;
 import com.corosus.watut.WatutNetworking;
-import com.corosus.watut.loader.forge.PacketNBTFromClient;
-import com.corosus.watut.loader.forge.PacketNBTFromServer;
-import net.minecraft.client.Minecraft;
+import com.corosus.watut.network.PacketNBTFromClient;
+import com.corosus.watut.network.PacketNBTFromServer;
+import com.corosus.watut.network.PacketBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.network.*;
-import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class WatutNetworkingForge extends WatutNetworking {
 
-    private static final String PROTOCOL_VERSION = Integer.toString(4);
-    private static short lastID = 0;
-    public static final ResourceLocation NETWORK_CHANNEL_ID_MAIN = new ResourceLocation(WatutMod.MODID, "main");
-
     public WatutNetworkingForge() {
         super();
-        init();
     }
 
-    public static SimpleChannel HANDLER;
+    public static SimpleChannel HANDLER = ChannelBuilder.named(new ResourceLocation(WatutMod.MODID, WatutMod.MODID + "_packets")).simpleChannel();;
 
-    /*public static final SimpleChannel HANDLER = NetworkRegistry.ChannelBuilder
-            .named(NETWORK_CHANNEL_ID_MAIN)
-            .clientAcceptedVersions(PROTOCOL_VERSION::equals)
-            .serverAcceptedVersions(PROTOCOL_VERSION::equals)
-            .networkProtocolVersion(() -> PROTOCOL_VERSION)
-            .simpleChannel();*/
+    public static void register() {
+        registerClientboundPacket(
+                WatutMod.PACKET_ID_NBT_FROM_SERVER,
+                0,
+                PacketNBTFromServer.class,
+                PacketNBTFromServer::write,
+                PacketNBTFromServer::new,
+                PacketNBTFromServer::handle
+        );
 
-    public static void init() {
-        ChannelBuilder channelBuilder = ChannelBuilder.named(name).networkProtocolVersion(PROTOCOL_VERSION);
-        HANDLER = channelBuilder.simpleChannel();
-        HANDLER.messageBuilder(PacketPayload.class)
-                .encoder(PacketPayload::write)
-                .decoder(this::readPacket)
-                .consumerNetworkThread((payload, context) -> {
-                    Player player = context.isServerSide() ? context.getSender() : getPlayer();
-                    payload.process(player).ifPresent(context::enqueueWork);
-                    context.setPacketHandled(true);
-                })
+        registerServerboundPacket(
+                WatutMod.PACKET_ID_NBT_FROM_CLIENT,
+                1,
+                PacketNBTFromClient.class,
+                PacketNBTFromClient::write,
+                PacketNBTFromClient::new,
+                PacketNBTFromClient::handle
+        );
+    }
+
+    public static <T extends PacketBase> void registerServerboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, FriendlyByteBuf> writer, Function<FriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args) {
+        BiConsumer<T, CustomPayloadEvent.Context> serverHandler = (packet, ctx) -> {
+            if(ctx.getDirection().getReceptionSide().isServer())
+            {
+                ctx.setPacketHandled(true);
+                ctx.enqueueWork(() -> {
+                    handler.accept(packet, ctx.getSender());
+                });
+            }
+        };
+
+        HANDLER.messageBuilder(clazz, numericalId, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(writer)
+                .decoder(reader)
+                .consumerMainThread(serverHandler)
                 .add();
     }
 
-    public static void register() {
-        registerMessage(PacketNBTFromServer.class, PacketNBTFromServer::encode, PacketNBTFromServer::decode, PacketNBTFromServer.Handler::handle, NetworkDirection.PLAY_TO_CLIENT);
-        registerMessage(PacketNBTFromClient.class, PacketNBTFromClient::encode, PacketNBTFromClient::decode, PacketNBTFromClient.Handler::handle, NetworkDirection.PLAY_TO_SERVER);
-    }
+    public static <T extends PacketBase> void registerClientboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, FriendlyByteBuf> writer, Function<FriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args)
+    {
+        BiConsumer<T, CustomPayloadEvent.Context> clientHandler = (packet, ctx) -> {
+            if(ctx.getDirection().getReceptionSide().isClient())
+            {
+                ctx.setPacketHandled(true);
+                ctx.enqueueWork(() -> {
+                    handler.accept(packet, WatutModClient.getPlayer());
+                });
+            }
+        };
 
-    private static <MSG> void registerMessage(Class<MSG> messageType, BiConsumer<MSG, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, MSG> decoder, BiConsumer<MSG, Supplier<NetworkEvent.Context>> messageConsumer, NetworkDirection networkDirection) {
-        HANDLER.registerMessage(lastID, messageType, encoder, decoder, messageConsumer, Optional.ofNullable(networkDirection));
-        lastID++;
-        if (lastID > 0xFF)
-            throw new RuntimeException("Too many messages!");
+        HANDLER.messageBuilder(clazz, numericalId, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(writer)
+                .decoder(reader)
+                .consumerMainThread(clientHandler)
+                .add();
     }
 
     @Override
     public void clientSendToServer(CompoundTag data) {
-        HANDLER.sendTo(new PacketNBTFromClient(data), Minecraft.getInstance().player.connection.getConnection(), NetworkDirection.PLAY_TO_SERVER);
+        HANDLER.send(new PacketNBTFromClient(data), PacketDistributor.SERVER.noArg());
     }
 
     @Override
     public void serverSendToClientAll(CompoundTag data) {
-        HANDLER.send(PacketDistributor.ALL.noArg(), new PacketNBTFromServer(data));
+        HANDLER.send(new PacketNBTFromServer(data), PacketDistributor.ALL.noArg());
     }
 
     @Override
     public void serverSendToClientPlayer(CompoundTag data, Player player) {
-        HANDLER.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new PacketNBTFromServer(data));
+        HANDLER.send(new PacketNBTFromServer(data), PacketDistributor.PLAYER.with((ServerPlayer) player));
     }
 
     @Override
     public void serverSendToClientNear(CompoundTag data, Vec3 pos, double dist, Level level) {
-        HANDLER.send(PacketDistributor.NEAR.with(() ->
-                        new PacketDistributor.TargetPoint(pos.x, pos.y, pos.z, dist, level.dimension())),
-                new PacketNBTFromServer(data));
+        HANDLER.send(new PacketNBTFromServer(data), PacketDistributor.NEAR.with(new PacketDistributor.TargetPoint(pos.x, pos.y, pos.z, dist, level.dimension())));
     }
 }
 

@@ -5,8 +5,8 @@
   "refmap": "watut.refmap.json",
   "client": [
     "client.SetupRotationsInject",
-    "client.RenderPingIconInject",
-    "client.GuiGraphicsInnerBlit"/*,
+    "client.RenderPingIconInject"/*,
+    "client.GuiGraphicsInnerBlit",
     "client.ScreenRenderWithTooltip"*/
   ],
   "injectors": {
