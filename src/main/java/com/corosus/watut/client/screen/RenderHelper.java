@@ -31,7 +31,7 @@ public class RenderHelper {
     }
 
     public static void renderWithTooltipEnd(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        for (PlayerStatus playerStatus : WatutMod.getPlayerStatusManagerClient().lookupPlayerToStatus.values()) {
+        /*for (PlayerStatus playerStatus : WatutMod.getPlayerStatusManagerClient().lookupPlayerToStatus.values()) {
             ScreenData screenData = playerStatus.getScreenData();
             if (screenData.needsNewRender()) {
                 screenData.markNeedsNewRender(false);
@@ -80,7 +80,7 @@ public class RenderHelper {
                 screenData.unbind();
                 //System.out.println("completed new render for " + playerStatus);
             }
-        }
+        }*/
     }
 
 }
