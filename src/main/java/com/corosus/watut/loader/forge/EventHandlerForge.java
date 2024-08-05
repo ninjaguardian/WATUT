@@ -13,29 +13,29 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = WatutMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = WatutMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value=Dist.CLIENT)
 public class EventHandlerForge {
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
+    
     public void registerCommandsClient(RegisterClientCommandsEvent event) {
         CommandWatutReloadJSON.register(event.getDispatcher());
     }
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
+    
     public void onMouse(InputEvent.MouseButton.Post event) {
         WatutMod.getPlayerStatusManagerClient().onMouse(event.getAction() != 0);
     }
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
+    
     public void onKey(InputEvent.Key event) {
         WatutMod.getPlayerStatusManagerClient().onKey();
     }
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
+    
     public void onGameTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             WatutMod.getPlayerStatusManagerClient().tickGame();

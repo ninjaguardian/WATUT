@@ -8,6 +8,7 @@ import com.corosus.watut.network.PacketNBTFromServer;
 import com.corosus.watut.network.PacketBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -47,9 +48,9 @@ public class WatutNetworkingForge extends WatutNetworking {
         );
     }
 
-    public static <T extends PacketBase> void registerServerboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, FriendlyByteBuf> writer, Function<FriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args) {
-        /*BiConsumer<T, CustomPayloadEvent.Context> serverHandler = (packet, ctx) -> {
-            if(ctx.getDirection().getReceptionSide().isServer())
+    public static <T extends PacketBase> void registerServerboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, RegistryFriendlyByteBuf> writer, Function<RegistryFriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args) {
+        BiConsumer<T, CustomPayloadEvent.Context> serverHandler = (packet, ctx) -> {
+            if(ctx.isServerSide())
             {
                 ctx.setPacketHandled(true);
                 ctx.enqueueWork(() -> {
@@ -62,13 +63,13 @@ public class WatutNetworkingForge extends WatutNetworking {
                 .encoder(writer)
                 .decoder(reader)
                 .consumerMainThread(serverHandler)
-                .add();*/
+                .add();
     }
 
-    public static <T extends PacketBase> void registerClientboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, FriendlyByteBuf> writer, Function<FriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args)
+    public static <T extends PacketBase> void registerClientboundPacket(ResourceLocation id, int numericalId, Class<T> clazz, BiConsumer<T, RegistryFriendlyByteBuf> writer, Function<RegistryFriendlyByteBuf, T> reader, BiConsumer<T, Player> handler, Object... args)
     {
-        /*BiConsumer<T, CustomPayloadEvent.Context> clientHandler = (packet, ctx) -> {
-            if(ctx.getDirection().getReceptionSide().isClient())
+        BiConsumer<T, CustomPayloadEvent.Context> clientHandler = (packet, ctx) -> {
+            if(ctx.isClientSide())
             {
                 ctx.setPacketHandled(true);
                 ctx.enqueueWork(() -> {
@@ -81,7 +82,7 @@ public class WatutNetworkingForge extends WatutNetworking {
                 .encoder(writer)
                 .decoder(reader)
                 .consumerMainThread(clientHandler)
-                .add();*/
+                .add();
     }
 
     @Override

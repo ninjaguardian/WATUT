@@ -146,7 +146,7 @@ apply plugin: 'org.spongepowered.mixin'
 //Uncomment if using mixins (Mixin edits are found in 3 places)
 mixin {
     add sourceSets.main, "${project.mod_id}.refmap.json"
-    config '${project.mod_id}.mixins.json'
+    config "${project.mod_id}.mixins.json"
 }
 
 dependencies {
@@ -159,6 +159,7 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     //implementation fg.deobf("curse.maven:jei-238222:5101366")
     //implementation fg.deobf("curse.maven:farmers-delight-398521:5051242")
+    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
 
     implementation ("com.corosus.coroutil:coroutil-forge:${project.minecraft_version}-${project.coroutil_version}")
 

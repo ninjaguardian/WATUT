@@ -523,12 +523,12 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                     float brightness = 0.7F;
                     int subSizeX = 0;
                     int subSizeY = 0;
-                    boolean newRender = true;
+                    boolean newRender = false;
                     if (newRender) {
                         if (this.getStatus(player).getPlayerGuiState() != PlayerStatus.PlayerGuiState.NONE && this.getStatus(player).getPlayerGuiState() != PlayerStatus.PlayerGuiState.CHAT_SCREEN) {
-                            if (playerStatus.getScreenData().getParticleRenderType() != null) {
+                            /*if (playerStatus.getScreenData().getParticleRenderType() != null) {
                                 particle = new ParticleDynamic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, playerStatus.getScreenData().getParticleRenderType(), 0.7F);
-                            }
+                            }*/
                         }
                     } else {
                         if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.INVENTORY) {
@@ -540,10 +540,10 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.CHEST) {
                             particle = new ParticleStaticLoD((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.chest.getSpriteSet());
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.EDIT_BOOK) {
-                            //particle = new ParticleStatic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.book.getSprite(), 0.7F);
-                            if (playerStatus.getScreenData().getParticleRenderType() != null) {
+                            particle = new ParticleStatic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.book.getSprite(), 0.7F);
+                            /*if (playerStatus.getScreenData().getParticleRenderType() != null) {
                                 particle = new ParticleDynamic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, playerStatus.getScreenData().getParticleRenderType(), 0.7F);
-                            }
+                            }*/
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.EDIT_SIGN) {
                             particle = new ParticleStatic((ClientLevel) player.level(), posParticle.x, posParticle.y, posParticle.z, ParticleRegistry.sign.getSprite(), 0.7F);
                         } else if (this.getStatus(player).getPlayerGuiState() == PlayerStatus.PlayerGuiState.ENCHANTING_TABLE) {
@@ -669,42 +669,42 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
     }
 
     public void hookStartScreenRender() {
-        PlayerStatus playerStatusLocal = getStatusLocal();
+        /*PlayerStatus playerStatusLocal = getStatusLocal();
 
         if (playerStatusLocal.getLastScreenCaptured() != playerStatusLocal.getPlayerGuiState() || (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getGameTime() % 10 == 0)) {
             playerStatusLocal.setLastScreenCaptured(playerStatusLocal.getPlayerGuiState());
             if (playerStatusLocal.getPlayerGuiState() != PlayerStatus.PlayerGuiState.NONE && playerStatusLocal.getPlayerGuiState() != PlayerStatus.PlayerGuiState.CHAT_SCREEN) {
                 playerStatusLocal.getScreenData().startCapture();
             }
-        }
+        }*/
     }
 
     public void hookStopScreenRender() {
-        PlayerStatus playerStatusLocal = getStatusLocal();
+        /*PlayerStatus playerStatusLocal = getStatusLocal();
         if (playerStatusLocal.getScreenData().isCapturing()) {
             playerStatusLocal.getScreenData().stopCapture();
 
             sendScreenRenderData(playerStatusLocal);
-        }
+        }*/
     }
 
     public void hookInnerBlit(ResourceLocation pAtlasLocation, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, float pMinU, float pMaxU, float pMinV, float pMaxV) {
-        PlayerStatus playerStatusLocal = getStatusLocal();
+        /*PlayerStatus playerStatusLocal = getStatusLocal();
         if (playerStatusLocal.getScreenData().isCapturing()) {
             RenderCall renderCall = new RenderCall(RenderCallType.INNER_BLIT);
             renderCall.innerBlit(pAtlasLocation, pX1, pX2, pY1, pY2, pBlitOffset, pMinU, pMaxU, pMinV, pMaxV);
             playerStatusLocal.getScreenData().addRenderCall(renderCall);
-        }
+        }*/
 
     }
 
     public void hookInnerBlit(ResourceLocation pAtlasLocation, int pX1, int pX2, int pY1, int pY2, int pBlitOffset, float pMinU, float pMaxU, float pMinV, float pMaxV, float pRed, float pGreen, float pBlue, float pAlpha) {
-        PlayerStatus playerStatusLocal = getStatusLocal();
+        /*PlayerStatus playerStatusLocal = getStatusLocal();
         if (playerStatusLocal.getScreenData().isCapturing()) {
             RenderCall renderCall = new RenderCall(RenderCallType.INNER_BLIT2);
             renderCall.innerBlit(pAtlasLocation, pX1, pX2, pY1, pY2, pBlitOffset, pMinU, pMaxU, pMinV, pMaxV, pRed, pGreen, pBlue, pAlpha);
             playerStatusLocal.getScreenData().addRenderCall(renderCall);
-        }
+        }*/
     }
 
     public boolean renderPingIconHook(PlayerTabOverlay playerTabOverlay, GuiGraphics pGuiGraphics, int p_281809_, int p_282801_, int pY, PlayerInfo pPlayerInfo) {
@@ -1032,7 +1032,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
     }
 
     public void sendScreenRenderData(PlayerStatus status) {
-        CompoundTag data = new CompoundTag();
+        /*CompoundTag data = new CompoundTag();
         CompoundTag nbtRenderCalls = new CompoundTag();
 
         int renderCallIndex = 0;
@@ -1063,7 +1063,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
 
         //System.out.println("send screen data");
 
-        WatutNetworking.instance().clientSendToServer(data);
+        WatutNetworking.instance().clientSendToServer(data);*/
     }
 
     public void sendTyping(PlayerStatus status) {
@@ -1157,7 +1157,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
             }
         }
 
-        if (data.contains(WatutNetworking.NBTDataPlayerScreenRenderCalls)) {
+        /*if (data.contains(WatutNetworking.NBTDataPlayerScreenRenderCalls)) {
             status.getScreenData().getListRenderCalls().clear();
             //System.out.println("receiving screen data");
             CompoundTag nbtRenderCalls = data.getCompound(WatutNetworking.NBTDataPlayerScreenRenderCalls);
@@ -1194,7 +1194,7 @@ public class PlayerStatusManagerClient extends PlayerStatusManager {
             }
             status.getScreenData().markNeedsNewRender(true);
             //System.out.println("received screen data");
-        }
+        }*/
     }
 
 }
