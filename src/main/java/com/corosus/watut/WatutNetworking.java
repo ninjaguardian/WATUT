@@ -8,7 +8,7 @@ import net.minecraft.world.phys.Vec3;
 
 public abstract class WatutNetworking {
 
-    public static final ResourceLocation NBT_PACKET_ID = new ResourceLocation(WatutMod.MODID, "nbt");
+    public static final ResourceLocation NBT_PACKET_ID = ResourceLocation.fromNamespaceAndPath(WatutMod.MODID, "nbt");
 
     public static String NBTDataPlayerUUID = "playerUuid";
     public static String NBTDataPlayerGuiStatus = "playerGuiStatus";

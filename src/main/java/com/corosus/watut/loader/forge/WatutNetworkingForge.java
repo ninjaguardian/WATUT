@@ -26,7 +26,7 @@ public class WatutNetworkingForge extends WatutNetworking {
         super();
     }
 
-    public static SimpleChannel HANDLER = ChannelBuilder.named(new ResourceLocation(WatutMod.MODID, WatutMod.MODID + "_packets")).simpleChannel();;
+    public static SimpleChannel HANDLER = ChannelBuilder.named(ResourceLocation.fromNamespaceAndPath(WatutMod.MODID, WatutMod.MODID + "_packets")).simpleChannel();;
 
     public static void register() {
         registerClientboundPacket(

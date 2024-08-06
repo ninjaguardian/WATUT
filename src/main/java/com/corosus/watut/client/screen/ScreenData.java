@@ -53,7 +53,7 @@ public class ScreenData {
         //System.out.println("init new framebuffer, texture id: " + mainRenderTarget.getColorTextureId());
 
         this.particleRenderType = new ParticleRenderType() {
-            public void begin(BufferBuilder p_107455_, TextureManager p_107456_) {
+            public BufferBuilder begin(Tesselator p_107455_, TextureManager p_107456_) {
                 RenderSystem.depthMask(true);
                 //RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
                 //RenderSystem.bindTexture(ScreenCapturing.mainRenderTarget.getColorTextureId());
@@ -61,13 +61,13 @@ public class ScreenData {
                 RenderSystem.enableBlend();
                 RenderSystem.defaultBlendFunc();
                 RenderSystem.disableCull();
-                p_107455_.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
-            }
+                return p_107455_.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+            }/*
 
             public void end(Tesselator p_107458_) {
                 p_107458_.end();
                 RenderSystem.enableCull();
-            }
+            }*/
 
             public String toString() {
                 return "DYNAMIC_TEXTURE";

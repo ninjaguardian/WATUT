@@ -29,9 +29,9 @@ public class SpriteInfo {
 
     public ResourceLocation getResLocationName(int index) {
         if (isSpriteSet()) {
-            return new ResourceLocation(WatutMod.MODID + ":particles/" + name + index);
+            return ResourceLocation.parse(WatutMod.MODID + ":particles/" + name + index);
         } else {
-            return new ResourceLocation(WatutMod.MODID + ":particles/" + name);
+            return ResourceLocation.parse(WatutMod.MODID + ":particles/" + name);
         }
     }
 

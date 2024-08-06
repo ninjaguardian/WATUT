@@ -24,8 +24,8 @@ public abstract class WatutMod
 
     public static String configJSONName = "watut-item-arm-adjustments.json";
 
-    public static final ResourceLocation PACKET_ID_NBT_FROM_SERVER =  new ResourceLocation(MODID, "nbt_from_server");
-    public static final ResourceLocation PACKET_ID_NBT_FROM_CLIENT =  new ResourceLocation(MODID, "nbt_from_client");
+    public static final ResourceLocation PACKET_ID_NBT_FROM_SERVER = ResourceLocation.fromNamespaceAndPath(MODID, "nbt_from_server");
+    public static final ResourceLocation PACKET_ID_NBT_FROM_CLIENT = ResourceLocation.fromNamespaceAndPath(MODID, "nbt_from_client");
 
     private static WatutMod instance;
 
@@ -54,7 +54,7 @@ public abstract class WatutMod
 
     public static void generateJsonConfigFile(String filename) {
         String filePath = "config/" + filename;
-        String fileContents = getContentsFromResourceLocation(new ResourceLocation(MODID, filePath));
+        String fileContents = getContentsFromResourceLocation(ResourceLocation.fromNamespaceAndPath(MODID, filePath));
         if (!fileContents.equals("")) {
             File fileOut = new File("./config/" + filename);
             if (!fileOut.exists()) {
