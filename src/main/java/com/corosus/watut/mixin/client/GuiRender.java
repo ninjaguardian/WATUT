@@ -1,6 +1,7 @@
 package com.corosus.watut.mixin.client;
 
 import com.corosus.watut.WatutMod;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -20,7 +21,7 @@ public abstract class GuiRender {
     }*/
 
     @Inject(method = "renderChat", at = @At("TAIL"))
-    private void render(GuiGraphics p_329202_, float p_328014_, CallbackInfo info) {
+    private void render(GuiGraphics p_329202_, DeltaTracker deltaTracker, CallbackInfo info) {
         WatutMod.getPlayerStatusManagerClient().onGuiRender();
     }
 }
