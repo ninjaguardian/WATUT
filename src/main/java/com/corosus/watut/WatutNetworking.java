@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3;
 
 public abstract class WatutNetworking {
 
+    //for forge only, maybe fabric
     public static final ResourceLocation NBT_PACKET_ID = ResourceLocation.fromNamespaceAndPath(WatutMod.MODID, "nbt");
 
     public static String NBTDataPlayerUUID = "playerUuid";

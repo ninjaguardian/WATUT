@@ -78,6 +78,7 @@ sourceSets {
 		java {
 			exclude "com/corosus/${project.mod_id}/api/forge/**"
 			exclude "com/corosus/${project.mod_id}/loader/forge/**"
+			exclude "com/corosus/${project.mod_id}/loader/neoforge/**"
 		}
 	}
 }
@@ -94,6 +95,7 @@ processResources {
 	}
 
 	exclude("META-INF/mods.toml")
+	exclude("META-INF/neoforge.mods.toml")
 	exclude("META-INF/accesstransformer.cfg")
 }
 

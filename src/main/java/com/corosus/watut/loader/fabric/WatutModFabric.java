@@ -1,7 +1,8 @@
 package com.corosus.watut.loader.fabric;
 
 import com.corosus.watut.WatutMod;
-import com.corosus.watut.network.PacketNBTRecord;
+import com.corosus.watut.network.PacketNBTFromClient;
+import com.corosus.watut.network.PacketNBTFromServer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -25,10 +26,10 @@ public class WatutModFabric extends WatutMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTED.register((minecraftServer) -> {
 			WatutModFabric.minecraftServer = minecraftServer;
 		});
-		PayloadTypeRegistry.playS2C().register(PacketNBTRecord.TYPE, PacketNBTRecord.STREAM_CODEC);
-		PayloadTypeRegistry.playC2S().register(PacketNBTRecord.TYPE, PacketNBTRecord.STREAM_CODEC);
-		ServerPlayNetworking.registerGlobalReceiver(PacketNBTRecord.TYPE, (payload, ctx) -> {
-			CompoundTag nbt = payload.data();
+		PayloadTypeRegistry.playS2C().register(PacketNBTFromServer.TYPE, PacketNBTFromServer.STREAM_CODEC);
+		PayloadTypeRegistry.playC2S().register(PacketNBTFromClient.TYPE, PacketNBTFromClient.STREAM_CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(PacketNBTFromClient.TYPE, (payload, ctx) -> {
+			CompoundTag nbt = payload.nbt();
 			ctx.server().execute(() -> {
 				if (ctx.player() != null) {
 					WatutMod.getPlayerStatusManagerServer().receiveAny(ctx.player(), nbt);

@@ -4,7 +4,8 @@ import com.corosus.coroutil.config.ConfigCoroUtil;
 import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.WatutNetworking;
-import com.corosus.watut.network.PacketNBTRecord;
+import com.corosus.watut.network.PacketNBTFromClient;
+import com.corosus.watut.network.PacketNBTFromServer;
 import com.corosus.watut.particle.ParticleRotating;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -34,8 +35,8 @@ public class WatutModFabricClient implements ClientModInitializer {
 				}
 			});
 		});*/
-		ClientPlayNetworking.registerGlobalReceiver(PacketNBTRecord.TYPE, (payload, ctx) -> {
-			CompoundTag nbt = payload.data();
+		ClientPlayNetworking.registerGlobalReceiver(PacketNBTFromServer.TYPE, (payload, ctx) -> {
+			CompoundTag nbt = payload.nbt();
 			ctx.client().execute(() -> {
 				try {
 					UUID uuid = UUID.fromString(nbt.getString(WatutNetworking.NBTDataPlayerUUID));
