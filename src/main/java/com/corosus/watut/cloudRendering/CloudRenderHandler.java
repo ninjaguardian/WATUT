@@ -119,7 +119,7 @@ public class CloudRenderHandler {
                 }
 
                 if (renderableData.getVbo() != null) {
-                    //renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
+                    renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
                 }
                 //WatutMod.threadedBufferBuilder.clear();
                 //renderableData.getVbo().release();
@@ -135,8 +135,8 @@ public class CloudRenderHandler {
 
             }
             if (WatutMod.threadedBufferBuilder != null) {
-                CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
-                CULog.log("getRenderedBufferCount " + WatutMod.threadedBufferBuilder.getRenderedBufferCount());
+                //CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
+                //CULog.log("getRenderedBufferCount " + WatutMod.threadedBufferBuilder.getRenderedBufferCount());
             }
             threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
         }

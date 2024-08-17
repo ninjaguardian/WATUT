@@ -44,9 +44,12 @@ public class ThreadedVertexBuffer implements AutoCloseable {
          try {
             ThreadedBufferBuilderPersistentStorage.DrawState bufferbuilder$drawstate = p_231222_.drawState();
             this.format = this.uploadVertexBuffer(bufferbuilder$drawstate, p_231222_.vertexBuffer());
+            //needed
             this.sequentialIndices = this.uploadIndexBuffer(bufferbuilder$drawstate, p_231222_.indexBuffer());
+            //needed
             this.indexCount = bufferbuilder$drawstate.indexCount();
-            this.indexType = bufferbuilder$drawstate.indexType();
+            //not needed
+            //this.indexType = bufferbuilder$drawstate.indexType();
             this.mode = bufferbuilder$drawstate.mode();
          } finally {
             p_231222_.release();
@@ -72,7 +75,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
          }
 
          CULog.log("a");
-         RenderSystem.glBufferData(34962, p_231220_, this.usage.id);
+         //RenderSystem.glBufferData(34962, p_231220_, this.usage.id);
          CULog.log("b");
       }
 
