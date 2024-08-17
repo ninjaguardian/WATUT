@@ -51,7 +51,6 @@ public class ThreadedVertexBuffer implements AutoCloseable {
          } finally {
             p_231222_.release();
          }
-
       }
    }
 
@@ -227,5 +226,9 @@ public class ThreadedVertexBuffer implements AutoCloseable {
       private Usage(int p_286680_) {
          this.id = p_286680_;
       }
+   }
+
+   public int getVertexBufferId() {
+      return vertexBufferId;
    }
 }

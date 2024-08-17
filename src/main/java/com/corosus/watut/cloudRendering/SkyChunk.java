@@ -185,7 +185,7 @@ public class SkyChunk {
     public void pushNewOffThreadDataToMainThread() {
         setCameraPosForRender(getCameraPosDuringBuild());
         lookupPointsMainThread.clear();
-        lookupPointsMainThread.putAll(lookupPointsOffThread);
+        //lookupPointsMainThread.putAll(lookupPointsOffThread);
     }
 
     public class SkyChunkPoint {

@@ -46,8 +46,10 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
 
    public ThreadedBufferBuilderPersistentStorage(int p_85664_) {
       //this.buffer = MemoryTracker.create(p_85664_ * 6);
-      this.bufferInternal = BufferUtils.createByteBuffer(p_85664_ * 6);
-      ARBBufferStorage.glBufferStorage(GL33.GL_ARRAY_BUFFER, this.bufferInternal, GL33.GL_MAP_WRITE_BIT | ARBBufferStorage.GL_MAP_PERSISTENT_BIT);
+      //this.bufferInternal = BufferUtils.createByteBuffer(p_85664_ * 6);
+      //this.buffer = BufferUtils.createByteBuffer(p_85664_ * 6);
+      ByteBuffer buffer = BufferUtils.createByteBuffer(p_85664_ * 6);
+      ARBBufferStorage.glBufferStorage(GL33.GL_ARRAY_BUFFER, buffer, GL33.GL_MAP_WRITE_BIT | ARBBufferStorage.GL_MAP_PERSISTENT_BIT);
       this.buffer = GL33.glMapBufferRange(GL33.GL_ARRAY_BUFFER, 0, p_85664_ * 6, GL33.GL_MAP_WRITE_BIT | ARBBufferStorage.GL_MAP_PERSISTENT_BIT);
    }
 
@@ -452,6 +454,10 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
             ThreadedBufferBuilderPersistentStorage.this.releaseRenderedBuffer();
             this.released = true;
          }
+      }
+
+      public boolean isReleased() {
+         return released;
       }
    }
 

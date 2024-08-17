@@ -204,6 +204,7 @@ public class ThreadedCloudBuilder {
     }*/
 
     public boolean tickThreaded() {
+        //if (true) return false;
         //List<SkyChunk> skyChunkList = WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding();
         for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding()) {
             if (skyChunk.needsBuild()) {
@@ -231,6 +232,11 @@ public class ThreadedCloudBuilder {
                 Map.Entry<Long, SkyChunk> entry = it.next();
                 SkyChunk skyChunk = entry.getValue();
                 skyChunk.getPointsOffThread().clear();
+
+                if (skyChunk.getRenderableData().getVbo() != null && !skyChunk.getRenderableData().getVbo().isReleased()) {
+                    skyChunk.getRenderableData().getVbo().release();
+                }
+
                 //skyChunk.setBeingBuilt(true);
 
                 //query to build point map
@@ -263,7 +269,11 @@ public class ThreadedCloudBuilder {
                 this.setCamVec(vecCam);
 
                 skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
-                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
+                if (bufferbuilder != null) {
+                    skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
+                    //skyChunk.getRenderableData().getVbo().vertexBuffer().flip();
+                }
+
 
                 skyChunk.setLastBuildTime(getTicksVolatile());
 

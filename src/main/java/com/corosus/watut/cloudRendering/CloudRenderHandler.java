@@ -4,6 +4,7 @@ import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.cloudRendering.threading.ThreadedCloudBuilder;
+import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilderPersistentStorage;
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedVertexBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -16,6 +17,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL33;
 
 import java.util.*;
 
@@ -109,12 +111,22 @@ public class CloudRenderHandler {
                 //TODO: for now we might not need this, but to fix the thread conflict from using upload, it might be needed
                 //renderableData.swapBuffers();
                 renderableData.getActiveRenderingVertexBuffer().bind();
-                renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
+
+                if (WatutMod.threadedBufferBuilder == null) {
+                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, renderableData.getActiveRenderingVertexBuffer().getVertexBufferId());
+                    WatutMod.threadedBufferBuilder = new ThreadedBufferBuilderPersistentStorage(2097152 * 10);
+                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, 0);
+                }
+
+                if (renderableData.getVbo() != null) {
+                    //renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
+                }
                 //WatutMod.threadedBufferBuilder.clear();
                 //renderableData.getVbo().release();
                 skyChunk.setInitialized(true);
                 //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
                 skyChunk.pushNewOffThreadDataToMainThread();
+                //ThreadedVertexBuffer.unbind();
                 ThreadedVertexBuffer.unbind();
                 //skyChunk.setBeingBuilt(false);
 
@@ -122,8 +134,10 @@ public class CloudRenderHandler {
                 it.remove();
 
             }
-            CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
-            CULog.log("getRenderedBufferCount " + WatutMod.threadedBufferBuilder.getRenderedBufferCount());
+            if (WatutMod.threadedBufferBuilder != null) {
+                CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
+                CULog.log("getRenderedBufferCount " + WatutMod.threadedBufferBuilder.getRenderedBufferCount());
+            }
             threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
         }
 
@@ -199,34 +213,40 @@ public class CloudRenderHandler {
                 List<SkyChunk> skyChunkList = getListOfSkyChunksForRender();
                 for (SkyChunk skyChunk : getListOfSkyChunksForRender()) {
                     RenderableData renderableData = skyChunk.getRenderableData();
-                    Vec3 vecCamVBO = skyChunk.getCameraPosForRender();
-                    WatutMod.cloudShader.VBO_RENDER_POS.set(new Vector3f((float)(vecCamVBO.x - vecCam.x), (float) (vecCamVBO.y - vecCam.y), (float) (vecCamVBO.z - vecCam.z)));
+                    //if (renderableData.getVbo() == null) continue;
+                    try {
+                        Vec3 vecCamVBO = skyChunk.getCameraPosForRender();
+                        WatutMod.cloudShader.VBO_RENDER_POS.set(new Vector3f((float)(vecCamVBO.x - vecCam.x), (float) (vecCamVBO.y - vecCam.y), (float) (vecCamVBO.z - vecCam.z)));
 
-                    if (skyChunk.isInitialized()) {
-                        renderableData.getActiveRenderingVertexBuffer().bind();
+                        if (skyChunk.isInitialized()) {
+                            renderableData.getActiveRenderingVertexBuffer().bind();
 
-                        RenderSystem.colorMask(true, true, true, true);
-                        if (skyChunk.isClientCameraInCloudForSkyChunk()) {
-                            skyChunk.setClientCameraInCloudForSkyChunk(false);
-                            RenderSystem.disableCull();
+                            RenderSystem.colorMask(true, true, true, true);
+                            if (skyChunk.isClientCameraInCloudForSkyChunk()) {
+                                skyChunk.setClientCameraInCloudForSkyChunk(false);
+                                RenderSystem.disableCull();
+                            }
+
+                            if (rand3.nextFloat() > 0.993F && false) {
+                                Vector3f vec = new Vector3f(renderableData.getLightningPos());
+                                //TODO: skychunk changes, needs to be reworked, lightning could bleed into another chunk, for now just contain within chunk
+                                //vec.add(rand3.nextFloat() * threadedCloudBuilder.getSizeX(), rand3.nextFloat() * threadedCloudBuilder.getSizeY()/* + rand3.nextFloat(80)*/, rand3.nextFloat() * threadedCloudBuilder.getSizeZ());
+                                vec.add(rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size);
+                                WatutMod.cloudShader.LIGHTNING_POS.set(vec);
+                            } else {
+                                WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(0, -999, 0));
+                            }
+
+                            ShaderInstance shaderinstance = RenderSystem.getShader();
+                            renderableData.getActiveRenderingVertexBuffer().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                            VertexBuffer.unbind();
+
+                            RenderSystem.enableCull();
                         }
+                    } catch (Exception exception) {
 
-                        if (rand3.nextFloat() > 0.993F && false) {
-                            Vector3f vec = new Vector3f(renderableData.getLightningPos());
-                            //TODO: skychunk changes, needs to be reworked, lightning could bleed into another chunk, for now just contain within chunk
-                            //vec.add(rand3.nextFloat() * threadedCloudBuilder.getSizeX(), rand3.nextFloat() * threadedCloudBuilder.getSizeY()/* + rand3.nextFloat(80)*/, rand3.nextFloat() * threadedCloudBuilder.getSizeZ());
-                            vec.add(rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size);
-                            WatutMod.cloudShader.LIGHTNING_POS.set(vec);
-                        } else {
-                            WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(0, -999, 0));
-                        }
-
-                        ShaderInstance shaderinstance = RenderSystem.getShader();
-                        renderableData.getActiveRenderingVertexBuffer().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
-                        VertexBuffer.unbind();
-
-                        RenderSystem.enableCull();
                     }
+
                 }
             }
         }

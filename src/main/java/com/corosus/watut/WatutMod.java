@@ -28,7 +28,7 @@ public abstract class WatutMod
     public static ShaderInstanceCloud cloudShader;
 
     //public static ThreadedBufferBuilderPersistentStorage threadedBufferBuilder = new ThreadedBufferBuilderPersistentStorage(2097152);
-    public static ThreadedBufferBuilderPersistentStorage threadedBufferBuilder = new ThreadedBufferBuilderPersistentStorage(2097152 * 10);
+    public static ThreadedBufferBuilderPersistentStorage threadedBufferBuilder;
 
     public static final VertexFormat POSITION_TEX_COLOR_NORMAL_VEC3 = new VertexFormat(ImmutableMap.<String, VertexFormatElement>builder().put("Position", DefaultVertexFormat.ELEMENT_POSITION).put("UV0", DefaultVertexFormat.ELEMENT_UV0).put("Color", DefaultVertexFormat.ELEMENT_COLOR).put("Normal", DefaultVertexFormat.ELEMENT_NORMAL).put("Position2", DefaultVertexFormat.ELEMENT_POSITION).put("Padding", DefaultVertexFormat.ELEMENT_PADDING).build());
 
