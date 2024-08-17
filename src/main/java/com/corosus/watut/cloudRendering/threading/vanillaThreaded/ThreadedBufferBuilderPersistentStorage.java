@@ -10,6 +10,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.ARBBufferStorage;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 
@@ -22,6 +24,7 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
    private static final int GROWTH_SIZE = 2097152;
    private static final Logger LOGGER = LogUtils.getLogger();
    private ByteBuffer buffer;
+   private ByteBuffer bufferInternal;
    private int renderedBufferCount;
    private int renderedBufferPointer;
    private int nextElementByte;
@@ -43,7 +46,9 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
 
    public ThreadedBufferBuilderPersistentStorage(int p_85664_) {
       //this.buffer = MemoryTracker.create(p_85664_ * 6);
-      this.buffer = BufferUtils.createByteBuffer(p_85664_ * 6);
+      this.bufferInternal = BufferUtils.createByteBuffer(p_85664_ * 6);
+      ARBBufferStorage.glBufferStorage(GL33.GL_ARRAY_BUFFER, this.bufferInternal, GL33.GL_MAP_WRITE_BIT | ARBBufferStorage.GL_MAP_PERSISTENT_BIT);
+      this.buffer = GL33.glMapBufferRange(GL33.GL_ARRAY_BUFFER, 0, p_85664_ * 6, GL33.GL_MAP_WRITE_BIT | ARBBufferStorage.GL_MAP_PERSISTENT_BIT);
    }
 
    private void ensureVertexCapacity() {
@@ -51,15 +56,16 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
    }
 
    private void ensureCapacity(int p_85723_) {
-      /*if (this.nextElementByte + p_85723_ > this.buffer.capacity()) {
-         int i = this.buffer.capacity();
+      if (this.nextElementByte + p_85723_ > this.buffer.capacity()) {
+         System.out.println((this.nextElementByte + p_85723_) + " vs cur " + this.buffer.capacity());
+         /*int i = this.buffer.capacity();
          int j = i + roundUp(p_85723_);
          LOGGER.debug("Needed to grow BufferBuilder buffer: Old size {} bytes, new size {} bytes.", i, j);
          LOGGER.debug("??? {}", p_85723_);
          ByteBuffer bytebuffer = MemoryTracker.resize(this.buffer, j);
          bytebuffer.rewind();
-         this.buffer = bytebuffer;
-      }*/
+         this.buffer = bytebuffer;*/
+      }
    }
 
    private static int roundUp(int p_85726_) {
