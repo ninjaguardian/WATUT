@@ -42,17 +42,31 @@ public class ThreadedVertexBuffer implements AutoCloseable {
          RenderSystem.assertOnRenderThread();
 
          try {
+
+            //testing what lines are needed by uncommenting them and seeing if mapped buffer clouds render
+            //none of this is needed always, just has to run once,
+            //so something here is needed to setup once for the actual rendering code
+
             ThreadedBufferBuilderPersistentStorage.DrawState bufferbuilder$drawstate = p_231222_.drawState();
+            //needed - note i disabled the bufferdata within it
+            //eventually does this from VertexFormatElement.POSITION:
+            //GlStateManager._enableVertexAttribArray(p_167048_);
+            //GlStateManager._vertexAttribPointer(p_167048_, p_167043_, p_167044_, false, p_167045_, p_167046_);
+            //which is same thing the opengl test code does, but for render code, here were in vbo building context
+            //confirmed it only has to be done once for vertexAttribPointer
             this.format = this.uploadVertexBuffer(bufferbuilder$drawstate, p_231222_.vertexBuffer());
-            //needed
+            //this.format = bufferbuilder$drawstate.format();
+            //needed - disabled bufferdata
             this.sequentialIndices = this.uploadIndexBuffer(bufferbuilder$drawstate, p_231222_.indexBuffer());
             //needed
             this.indexCount = bufferbuilder$drawstate.indexCount();
             //not needed
             //this.indexType = bufferbuilder$drawstate.indexType();
+            //needed
             this.mode = bufferbuilder$drawstate.mode();
          } finally {
-            p_231222_.release();
+            //not needed
+            //p_231222_.release();
          }
       }
    }
@@ -71,7 +85,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
 
       if (!p_231219_.indexOnly()) {
          if (!flag) {
-            GlStateManager._glBindBuffer(34962, this.vertexBufferId);
+            //GlStateManager._glBindBuffer(34962, this.vertexBufferId);
          }
 
          CULog.log("a");
@@ -85,12 +99,13 @@ public class ThreadedVertexBuffer implements AutoCloseable {
    @Nullable
    private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(ThreadedBufferBuilderPersistentStorage.DrawState p_231224_, ByteBuffer p_231225_) {
       if (!p_231224_.sequentialIndex()) {
-         GlStateManager._glBindBuffer(34963, this.indexBufferId);
-         RenderSystem.glBufferData(34963, p_231225_, this.usage.id);
+         //GlStateManager._glBindBuffer(34963, this.indexBufferId);
+         //RenderSystem.glBufferData(34963, p_231225_, this.usage.id);
          return null;
       } else {
          RenderSystem.AutoStorageIndexBuffer rendersystem$autostorageindexbuffer = RenderSystem.getSequentialBuffer(p_231224_.mode());
          if (rendersystem$autostorageindexbuffer != this.sequentialIndices || !rendersystem$autostorageindexbuffer.hasStorage(p_231224_.indexCount())) {
+            //needed
             rendersystem$autostorageindexbuffer.bind(p_231224_.indexCount());
          }
 

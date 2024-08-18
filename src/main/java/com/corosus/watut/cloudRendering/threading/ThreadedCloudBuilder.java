@@ -255,7 +255,7 @@ public class ThreadedCloudBuilder {
                 if (scale == 1) {
                     //TODO: note, offsetY + sizeY must never be above 128, maybe do this code block differently, assumes getQueueUpdateSkyChunks doesnt go above or below 0 for y for sky chunks
                     //generateAlgoCloud(skyChunk, 5, 120);
-                    generateAlgoCloud(skyChunk, 120, 0);
+                    generateAlgoCloud(skyChunk, 80, 0);
                 } else if (scale == 4) {
                     generateAlgoCloud(skyChunk, 5, 50);
                 }
