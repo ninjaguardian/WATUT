@@ -75,8 +75,9 @@ public class ThreadedVertexBuffer implements AutoCloseable {
 
          long time = System.currentTimeMillis();
          RenderSystem.glBufferData(34962, p_231220_, this.usage.id);
+         //RenderSystem.glBufferData(34962, p_231220_, GL33.GL_STATIC_DRAW);
          //GL33.glBufferSubData(GL33.GL_ARRAY_BUFFER, 0, p_231220_);
-         CULog.log("glBufferData time: " + (System.currentTimeMillis() - time));
+         //CULog.log("glBufferData time: " + (System.currentTimeMillis() - time));
       }
 
       return p_231219_.format();

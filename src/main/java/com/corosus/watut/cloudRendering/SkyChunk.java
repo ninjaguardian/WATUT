@@ -20,7 +20,8 @@ public class SkyChunk {
     private final int y;
     private final int z;
 
-    public static int size = 128;
+    //public static int size = 128;
+    public static int size = 32;
 
     //TODO: we could replace this with what chunks use, look around use to turn x y z into efficient storage by index of CrudeIncrementalIntIdentityHashBiMap and PalletedContainer.Strategy
     private HashMap<Long, SkyChunkPoint> lookupPointsMainThread = new HashMap<>();

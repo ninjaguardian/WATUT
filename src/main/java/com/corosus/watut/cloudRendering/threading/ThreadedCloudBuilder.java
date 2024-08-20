@@ -205,6 +205,7 @@ public class ThreadedCloudBuilder {
     }*/
 
     public boolean tickThreaded() {
+        //if (true) return false;
         //List<SkyChunk> skyChunkList = WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding();
         for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding()) {
             if (skyChunk.needsBuild()) {
@@ -252,7 +253,7 @@ public class ThreadedCloudBuilder {
                     generateAlgoCloud(skyChunk, 5, 120);
                 } else if (scale == 4) {
                     //generateAlgoCloud(skyChunk, 5, 50);
-                    generateAlgoCloud(skyChunk, 100, 0);
+                    generateAlgoCloud(skyChunk, 30, 0);
                 }
 
                 //generateAlgoCloud(skyChunk, 5, cloudsY + 5);
@@ -416,7 +417,7 @@ public class ThreadedCloudBuilder {
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
         //System.out.println(time);
-        time = 202985;
+        //time = 202985;
 
         BlockPos skyChunkWorldPos = skyChunk.getWorldPos();
 

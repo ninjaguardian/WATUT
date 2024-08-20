@@ -90,7 +90,7 @@ public class CloudRenderHandler {
 
             threadedCloudBuilder.setScale(4);
             threadedCloudBuilder.setCloudsY(200 / threadedCloudBuilder.getScale());
-            skyChunkRenderRadius = 0;
+            skyChunkRenderRadius = 3;
 
             //initSkyChunksForGrid();
 
@@ -112,7 +112,7 @@ public class CloudRenderHandler {
                 long time = System.currentTimeMillis();
                 renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
 
-                CULog.log("upload time: " + (System.currentTimeMillis() - time) + " - " + skyChunk.getPointsOffThread().size() + " points");
+                //CULog.log("upload time: " + (System.currentTimeMillis() - time) + " - " + skyChunk.getPointsOffThread().size() + " points");
                 skyChunk.setInitialized(true);
                 //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
                 skyChunk.pushNewOffThreadDataToMainThread();
