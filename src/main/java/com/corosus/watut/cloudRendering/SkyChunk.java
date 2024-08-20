@@ -80,6 +80,7 @@ public class SkyChunk {
         //return lastBuildTime + rebuildFrequency < Minecraft.getInstance().level.getGameTime();
 
         rebuildFrequency = 20*5;
+        rebuildFrequency = 1;
 
         //keep all skychunks updating in sync, or immediately if new
         //if its 2 updates behind (because it just came into range, force a new build
@@ -183,7 +184,7 @@ public class SkyChunk {
     public void pushNewOffThreadDataToMainThread() {
         setCameraPosForRender(getCameraPosDuringBuild());
         lookupPointsMainThread.clear();
-        lookupPointsMainThread.putAll(lookupPointsOffThread);
+        //lookupPointsMainThread.putAll(lookupPointsOffThread);
     }
 
     public class SkyChunkPoint {

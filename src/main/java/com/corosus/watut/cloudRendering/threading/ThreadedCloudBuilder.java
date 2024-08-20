@@ -413,7 +413,7 @@ public class ThreadedCloudBuilder {
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
-        time = 0;
+        //time = 0;
 
         BlockPos skyChunkWorldPos = skyChunk.getWorldPos();
 

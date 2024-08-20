@@ -96,7 +96,7 @@ public class CloudRenderHandler {
             this.generateClouds = false;
         //}
 
-        if (threadedCloudBuilder.getSyncState() == ThreadedCloudBuilder.SyncState.IDLE) {
+        if (threadedCloudBuilder.getSyncState() == ThreadedCloudBuilder.SyncState.IDLE && false) {
             threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.MAINTHREADUPLOADINGVBO);
             for (Iterator<Map.Entry<Long, SkyChunk>> it = threadedCloudBuilder.getQueueWaitingForUploadSkyChunks().entrySet().iterator(); it.hasNext(); ) {
 
