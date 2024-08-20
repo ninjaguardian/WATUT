@@ -20,11 +20,11 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 @OnlyIn(Dist.CLIENT)
-public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsumer implements BufferVertexConsumer {
+public class ThreadedBufferBuilderPersistentStorageBak extends DefaultedVertexConsumer implements BufferVertexConsumer {
    private static final int GROWTH_SIZE = 2097152;
    private static final Logger LOGGER = LogUtils.getLogger();
    private ByteBuffer buffer;
-   //private ByteBuffer bufferInternal;
+   private ByteBuffer bufferInternal;
    private int renderedBufferCount;
    private int renderedBufferPointer;
    private int nextElementByte;
@@ -44,7 +44,7 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
    private boolean indexOnly;
    private int lastNextElementByte;
 
-   public ThreadedBufferBuilderPersistentStorage(int p_85664_) {
+   public ThreadedBufferBuilderPersistentStorageBak(int p_85664_) {
       //this.buffer = MemoryTracker.create(p_85664_ * 6);
       //this.bufferInternal = BufferUtils.createByteBuffer(p_85664_ * 6);
       //this.buffer = BufferUtils.createByteBuffer(p_85664_ * 6);
@@ -94,11 +94,11 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
       }
    }
 
-   public ThreadedBufferBuilderPersistentStorage.SortState getSortState() {
-      return new ThreadedBufferBuilderPersistentStorage.SortState(this.mode, this.vertices, this.sortingPoints, this.sorting);
+   public ThreadedBufferBuilderPersistentStorageBak.SortState getSortState() {
+      return new ThreadedBufferBuilderPersistentStorageBak.SortState(this.mode, this.vertices, this.sortingPoints, this.sorting);
    }
 
-   public void restoreSortState(ThreadedBufferBuilderPersistentStorage.SortState p_166776_) {
+   public void restoreSortState(ThreadedBufferBuilderPersistentStorageBak.SortState p_166776_) {
       this.buffer.rewind();
       this.mode = p_166776_.mode;
       this.vertices = p_166776_.vertices;
@@ -200,22 +200,22 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
    }
 
    @Nullable
-   public ThreadedBufferBuilderPersistentStorage.RenderedBuffer endOrDiscardIfEmpty() {
+   public ThreadedBufferBuilderPersistentStorageBak.RenderedBuffer endOrDiscardIfEmpty() {
       this.ensureDrawing();
       if (this.isCurrentBatchEmpty()) {
          this.reset();
          return null;
       } else {
-         ThreadedBufferBuilderPersistentStorage.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
+         ThreadedBufferBuilderPersistentStorageBak.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
          this.reset();
          return bufferbuilder$renderedbuffer;
       }
    }
 
-   public ThreadedBufferBuilderPersistentStorage.RenderedBuffer end() {
+   public ThreadedBufferBuilderPersistentStorageBak.RenderedBuffer end() {
       this.lastNextElementByte = this.nextElementByte;
       this.ensureDrawing();
-      ThreadedBufferBuilderPersistentStorage.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
+      ThreadedBufferBuilderPersistentStorageBak.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
       this.reset();
       return bufferbuilder$renderedbuffer;
    }
@@ -226,7 +226,7 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
       }
    }
 
-   private ThreadedBufferBuilderPersistentStorage.RenderedBuffer storeRenderedBuffer() {
+   private ThreadedBufferBuilderPersistentStorageBak.RenderedBuffer storeRenderedBuffer() {
       int i = this.mode.indexCount(this.vertices);
       int j = !this.indexOnly ? this.vertices * this.format.getVertexSize() : 0;
       VertexFormat.IndexType vertexformat$indextype = VertexFormat.IndexType.least(i);
@@ -247,8 +247,8 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
       int i1 = this.renderedBufferPointer;
       this.renderedBufferPointer += k;
       ++this.renderedBufferCount;
-      ThreadedBufferBuilderPersistentStorage.DrawState bufferbuilder$drawstate = new ThreadedBufferBuilderPersistentStorage.DrawState(this.format, this.vertices, i, this.mode, vertexformat$indextype, this.indexOnly, flag);
-      return new ThreadedBufferBuilderPersistentStorage.RenderedBuffer(i1, bufferbuilder$drawstate);
+      ThreadedBufferBuilderPersistentStorageBak.DrawState bufferbuilder$drawstate = new ThreadedBufferBuilderPersistentStorageBak.DrawState(this.format, this.vertices, i, this.mode, vertexformat$indextype, this.indexOnly, flag);
+      return new ThreadedBufferBuilderPersistentStorageBak.RenderedBuffer(i1, bufferbuilder$drawstate);
    }
 
    private void reset() {
@@ -419,19 +419,27 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
    @OnlyIn(Dist.CLIENT)
    public class RenderedBuffer {
       private final int pointer;
-      private final ThreadedBufferBuilderPersistentStorage.DrawState drawState;
+      private final ThreadedBufferBuilderPersistentStorageBak.DrawState drawState;
       private boolean released;
 
-      RenderedBuffer(int p_231194_, ThreadedBufferBuilderPersistentStorage.DrawState p_231195_) {
+      RenderedBuffer(int p_231194_, ThreadedBufferBuilderPersistentStorageBak.DrawState p_231195_) {
          this.pointer = p_231194_;
          this.drawState = p_231195_;
       }
 
       public ByteBuffer vertexBuffer() {
-         return ThreadedBufferBuilderPersistentStorage.this.buffer;
+         int i = this.pointer + this.drawState.vertexBufferStart();
+         int j = this.pointer + this.drawState.vertexBufferEnd();
+         return ThreadedBufferBuilderPersistentStorageBak.this.bufferSlice(i, j);
       }
 
-      public ThreadedBufferBuilderPersistentStorage.DrawState drawState() {
+      public ByteBuffer indexBuffer() {
+         int i = this.pointer + this.drawState.indexBufferStart();
+         int j = this.pointer + this.drawState.indexBufferEnd();
+         return ThreadedBufferBuilderPersistentStorageBak.this.bufferSlice(i, j);
+      }
+
+      public ThreadedBufferBuilderPersistentStorageBak.DrawState drawState() {
          return this.drawState;
       }
 
@@ -443,7 +451,7 @@ public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsu
          if (this.released) {
             throw new IllegalStateException("Buffer has already been released!");
          } else {
-            ThreadedBufferBuilderPersistentStorage.this.releaseRenderedBuffer();
+            ThreadedBufferBuilderPersistentStorageBak.this.releaseRenderedBuffer();
             this.released = true;
          }
       }

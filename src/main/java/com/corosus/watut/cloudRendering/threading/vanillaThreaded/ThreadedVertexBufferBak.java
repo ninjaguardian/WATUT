@@ -4,9 +4,6 @@ import com.corosus.coroutil.util.CULog;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import java.nio.ByteBuffer;
-import javax.annotation.Nullable;
-
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
@@ -16,20 +13,28 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL33;
 
+import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
+
 @OnlyIn(Dist.CLIENT)
-public class ThreadedVertexBuffer implements AutoCloseable {
-   private final ThreadedVertexBuffer.Usage usage;
+public class ThreadedVertexBufferBak implements AutoCloseable {
+   private final ThreadedVertexBufferBak.Usage usage;
    private int vertexBufferId;
+   private int indexBufferId;
    private int arrayObjectId;
    @Nullable
    private VertexFormat format;
-   private int vertexCount;
+   @Nullable
+   private RenderSystem.AutoStorageIndexBuffer sequentialIndices;
+   private VertexFormat.IndexType indexType;
+   private int indexCount;
    private VertexFormat.Mode mode;
 
-   public ThreadedVertexBuffer(ThreadedVertexBuffer.Usage p_286252_) {
+   public ThreadedVertexBufferBak(ThreadedVertexBufferBak.Usage p_286252_) {
       this.usage = p_286252_;
       RenderSystem.assertOnRenderThread();
       this.vertexBufferId = GlStateManager._glGenBuffers();
+      this.indexBufferId = GlStateManager._glGenBuffers();
       this.arrayObjectId = GlStateManager._glGenVertexArrays();
    }
 
@@ -55,8 +60,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
             //needed - disabled bufferdata
             //this.sequentialIndices = this.uploadIndexBuffer(bufferbuilder$drawstate, p_231222_.indexBuffer());
             //needed
-            //this.indexCount = bufferbuilder$drawstate.indexCount();
-            this.vertexCount = bufferbuilder$drawstate.vertexCount();
+            this.indexCount = bufferbuilder$drawstate.indexCount();
             //not needed
             //this.indexType = bufferbuilder$drawstate.indexType();
             //needed
@@ -93,6 +97,23 @@ public class ThreadedVertexBuffer implements AutoCloseable {
       return p_231219_.format();
    }
 
+   @Nullable
+   private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(ThreadedBufferBuilderPersistentStorage.DrawState p_231224_, ByteBuffer p_231225_) {
+      if (!p_231224_.sequentialIndex()) {
+         //GlStateManager._glBindBuffer(34963, this.indexBufferId);
+         //RenderSystem.glBufferData(34963, p_231225_, this.usage.id);
+         return null;
+      } else {
+         RenderSystem.AutoStorageIndexBuffer rendersystem$autostorageindexbuffer = RenderSystem.getSequentialBuffer(p_231224_.mode());
+         if (rendersystem$autostorageindexbuffer != this.sequentialIndices || !rendersystem$autostorageindexbuffer.hasStorage(p_231224_.indexCount())) {
+            //needed
+            rendersystem$autostorageindexbuffer.bind(p_231224_.indexCount());
+         }
+
+         return rendersystem$autostorageindexbuffer;
+      }
+   }
+
    public void bind() {
       BufferUploader.invalidate();
       GlStateManager._glBindVertexArray(this.arrayObjectId);
@@ -105,8 +126,12 @@ public class ThreadedVertexBuffer implements AutoCloseable {
 
    public void draw() {
       //RenderSystem.drawElements(this.mode.asGLMode, this.indexCount, this.getIndexType().asGLType);
-      //switching to this broke the visual of the render, lots of triangles missing / misplaced
-      GL33.glDrawArrays(this.mode.asGLMode, 0, this.vertexCount);
+      GL33.glDrawArrays(this.mode.asGLMode, 0, this.indexCount);
+   }
+
+   private VertexFormat.IndexType getIndexType() {
+      RenderSystem.AutoStorageIndexBuffer rendersystem$autostorageindexbuffer = this.sequentialIndices;
+      return rendersystem$autostorageindexbuffer != null ? rendersystem$autostorageindexbuffer.type() : this.indexType;
    }
 
    public void drawWithShader(Matrix4f p_254480_, Matrix4f p_254555_, ShaderInstance p_253993_) {
@@ -189,6 +214,11 @@ public class ThreadedVertexBuffer implements AutoCloseable {
       if (this.vertexBufferId >= 0) {
          RenderSystem.glDeleteBuffers(this.vertexBufferId);
          this.vertexBufferId = -1;
+      }
+
+      if (this.indexBufferId >= 0) {
+         RenderSystem.glDeleteBuffers(this.indexBufferId);
+         this.indexBufferId = -1;
       }
 
       if (this.arrayObjectId >= 0) {
