@@ -1,5 +1,6 @@
 package com.corosus.watut.cloudRendering;
 
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.cloudRendering.threading.ThreadedCloudBuilder;
@@ -89,14 +90,14 @@ public class CloudRenderHandler {
 
             threadedCloudBuilder.setScale(4);
             threadedCloudBuilder.setCloudsY(200 / threadedCloudBuilder.getScale());
-            skyChunkRenderRadius = 1;
+            skyChunkRenderRadius = 0;
 
             //initSkyChunksForGrid();
 
             this.generateClouds = false;
         //}
 
-        if (threadedCloudBuilder.getSyncState() == ThreadedCloudBuilder.SyncState.IDLE && false) {
+        if (threadedCloudBuilder.getSyncState() == ThreadedCloudBuilder.SyncState.IDLE) {
             threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.MAINTHREADUPLOADINGVBO);
             for (Iterator<Map.Entry<Long, SkyChunk>> it = threadedCloudBuilder.getQueueWaitingForUploadSkyChunks().entrySet().iterator(); it.hasNext(); ) {
 
@@ -108,7 +109,10 @@ public class CloudRenderHandler {
                 //TODO: for now we might not need this, but to fix the thread conflict from using upload, it might be needed
                 //renderableData.swapBuffers();
                 renderableData.getActiveRenderingVertexBuffer().bind();
+                long time = System.currentTimeMillis();
                 renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
+
+                CULog.log("upload time: " + (System.currentTimeMillis() - time) + " - " + skyChunk.getPointsOffThread().size() + " points");
                 skyChunk.setInitialized(true);
                 //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
                 skyChunk.pushNewOffThreadDataToMainThread();

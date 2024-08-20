@@ -1,6 +1,7 @@
 package com.corosus.watut.cloudRendering;
 
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
+import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilderPersistentStorage;
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedVertexBuffer;
 import org.joml.Vector3f;
 
@@ -11,7 +12,7 @@ public class RenderableData {
     //private ThreadedVertexBuffer vertexBufferB;
 
     //skychunk VBO data
-    private ThreadedBufferBuilder.RenderedBuffer vbo;
+    private ThreadedBufferBuilderPersistentStorage.RenderedBuffer vbo;
 
     //data for uniform
     private Vector3f lightningPos;
@@ -42,11 +43,11 @@ public class RenderableData {
         bufferAActive = !bufferAActive;
     }
 
-    public ThreadedBufferBuilder.RenderedBuffer getVbo() {
+    public ThreadedBufferBuilderPersistentStorage.RenderedBuffer getVbo() {
         return vbo;
     }
 
-    public void setVbo(ThreadedBufferBuilder.RenderedBuffer vbo) {
+    public void setVbo(ThreadedBufferBuilderPersistentStorage.RenderedBuffer vbo) {
         this.vbo = vbo;
     }
 

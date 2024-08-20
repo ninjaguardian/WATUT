@@ -4,6 +4,7 @@ import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.*;
 import com.corosus.watut.cloudRendering.*;
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
+import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilderPersistentStorage;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -221,7 +222,7 @@ public class ThreadedCloudBuilder {
             return false;
         }
 
-        ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
+        //ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
         Vec3 vec3 = new Vec3(0, 0, 0);
 
 
@@ -250,7 +251,8 @@ public class ThreadedCloudBuilder {
                     //TODO: note, offsetY + sizeY must never be above 128, maybe do this code block differently, assumes getQueueUpdateSkyChunks doesnt go above or below 0 for y for sky chunks
                     generateAlgoCloud(skyChunk, 5, 120);
                 } else if (scale == 4) {
-                    generateAlgoCloud(skyChunk, 5, 50);
+                    //generateAlgoCloud(skyChunk, 5, 50);
+                    generateAlgoCloud(skyChunk, 100, 0);
                 }
 
                 //generateAlgoCloud(skyChunk, 5, cloudsY + 5);
@@ -262,7 +264,7 @@ public class ThreadedCloudBuilder {
                 this.setCamVec(vecCam);
 
                 skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
-                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
+                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(WatutMod.threadedBufferBuilderPersistent, skyChunk, 0, cloudsY, 0, vec3, scale));
 
                 skyChunk.setLastBuildTime(getTicksVolatile());
 
@@ -331,7 +333,7 @@ public class ThreadedCloudBuilder {
 
             for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
                 skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
-                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(bufferbuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
+                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(WatutMod.threadedBufferBuilderPersistent, skyChunk, 0, cloudsY, 0, vec3, scale));
             }
 
             //System.out.println("skychunk count: " + SkyChunkManager.instance().getSkyChunks().size());
@@ -365,7 +367,7 @@ public class ThreadedCloudBuilder {
         CULog.log("total vbos count: " + SkyChunkManager.instance().getSkyChunks().size());*/
     }
 
-    private ThreadedBufferBuilder.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+    private ThreadedBufferBuilderPersistentStorage.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilderPersistentStorage bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
 
         bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
@@ -413,7 +415,8 @@ public class ThreadedCloudBuilder {
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
-        //time = 0;
+        //System.out.println(time);
+        time = 202985;
 
         BlockPos skyChunkWorldPos = skyChunk.getWorldPos();
 
@@ -700,7 +703,7 @@ public class ThreadedCloudBuilder {
         }
     }
 
-    private void renderCloudCube(ThreadedBufferBuilder bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, SkyChunk.SkyChunkPoint cloudPoint) {
+    private void renderCloudCube(ThreadedBufferBuilderPersistentStorage bufferIn, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, Vector3f cubePos, float scale, List<Direction> directions, SkyChunk.SkyChunkPoint cloudPoint) {
         pointCount++;
         Quaternionf q2 = new Quaternionf(0, 0, 0, 1);
         Random rand2 = new Random((long) (cubePos.x + cubePos.z));
@@ -858,7 +861,9 @@ public class ThreadedCloudBuilder {
                 avector3f32[3].y *= distToOutsideHalfBlockAdj;
             //}
 
-            bufferIn.vertex(avector3f3[0].x(), avector3f3[0].y(), avector3f3[0].z()).uv(f8, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
+            Random rand3 = new Random();
+
+            bufferIn.vertex(avector3f3[0].x()/* + rand3.nextFloat()*/, avector3f3[0].y(), avector3f3[0].z()).uv(f8, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
                     .vertex(distToOutsideAdj, avector3f32[0].y(), distToOutsideHalfBlockAdj).endVertex();
             bufferIn.vertex(avector3f3[1].x(), avector3f3[1].y(), avector3f3[1].z()).uv(f8, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
                     .vertex(distToOutsideAdj, avector3f32[1].y(), distToOutsideHalfBlockAdj).endVertex();

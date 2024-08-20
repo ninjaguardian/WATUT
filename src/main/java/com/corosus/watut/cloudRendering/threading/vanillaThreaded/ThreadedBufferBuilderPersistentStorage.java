@@ -1,27 +1,31 @@
 package com.corosus.watut.cloudRendering.threading.vanillaThreaded;
 
-import com.corosus.coroutil.util.CULog;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.platform.MemoryTracker;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import javax.annotation.Nullable;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.ARBBufferStorage;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 
+import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+
 @OnlyIn(Dist.CLIENT)
-public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements BufferVertexConsumer {
+public class ThreadedBufferBuilderPersistentStorage extends DefaultedVertexConsumer implements BufferVertexConsumer {
    private static final int GROWTH_SIZE = 2097152;
    private static final Logger LOGGER = LogUtils.getLogger();
    private ByteBuffer buffer;
+   //private ByteBuffer bufferInternal;
    private int renderedBufferCount;
    private int renderedBufferPointer;
    private int nextElementByte;
@@ -39,9 +43,15 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
    @Nullable
    private VertexSorting sorting;
    private boolean indexOnly;
+   private int lastNextElementByte;
 
-   public ThreadedBufferBuilder(int p_85664_) {
+   public ThreadedBufferBuilderPersistentStorage(int p_85664_) {
       this.buffer = MemoryTracker.create(p_85664_ * 6);
+      //this.bufferInternal = BufferUtils.createByteBuffer(p_85664_ * 6);
+      //this.buffer = BufferUtils.createByteBuffer(p_85664_ * 6);
+      //ByteBuffer buffer = BufferUtils.createByteBuffer(p_85664_ * 6);
+      //ARBBufferStorage.glBufferStorage(GL33.GL_ARRAY_BUFFER, buffer, GL33.GL_MAP_WRITE_BIT | ARBBufferStorage.GL_MAP_PERSISTENT_BIT | ARBBufferStorage.GL_MAP_COHERENT_BIT);
+      //this.buffer = GL33.glMapBufferRange(GL33.GL_ARRAY_BUFFER, 0, p_85664_ * 6, GL33.GL_MAP_WRITE_BIT | ARBBufferStorage.GL_MAP_PERSISTENT_BIT | GL33.GL_MAP_UNSYNCHRONIZED_BIT | ARBBufferStorage.GL_MAP_COHERENT_BIT);
    }
 
    private void ensureVertexCapacity() {
@@ -50,10 +60,11 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
 
    private void ensureCapacity(int p_85723_) {
       if (this.nextElementByte + p_85723_ > this.buffer.capacity()) {
+         System.out.println((this.nextElementByte + p_85723_) + " vs cur " + this.buffer.capacity());
          int i = this.buffer.capacity();
          int j = i + roundUp(p_85723_);
          LOGGER.debug("Needed to grow BufferBuilder buffer: Old size {} bytes, new size {} bytes.", i, j);
-         CULog.log("Needed to grow BufferBuilder buffer: Old size " + i + " bytes, new size " + j + " bytes.");
+         LOGGER.debug("??? {}", p_85723_);
          ByteBuffer bytebuffer = MemoryTracker.resize(this.buffer, j);
          bytebuffer.rewind();
          this.buffer = bytebuffer;
@@ -84,11 +95,11 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
       }
    }
 
-   public ThreadedBufferBuilder.SortState getSortState() {
-      return new ThreadedBufferBuilder.SortState(this.mode, this.vertices, this.sortingPoints, this.sorting);
+   public ThreadedBufferBuilderPersistentStorage.SortState getSortState() {
+      return new ThreadedBufferBuilderPersistentStorage.SortState(this.mode, this.vertices, this.sortingPoints, this.sorting);
    }
 
-   public void restoreSortState(ThreadedBufferBuilder.SortState p_166776_) {
+   public void restoreSortState(ThreadedBufferBuilderPersistentStorage.SortState p_166776_) {
       this.buffer.rewind();
       this.mode = p_166776_.mode;
       this.vertices = p_166776_.vertices;
@@ -190,21 +201,22 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
    }
 
    @Nullable
-   public ThreadedBufferBuilder.RenderedBuffer endOrDiscardIfEmpty() {
+   public ThreadedBufferBuilderPersistentStorage.RenderedBuffer endOrDiscardIfEmpty() {
       this.ensureDrawing();
       if (this.isCurrentBatchEmpty()) {
          this.reset();
          return null;
       } else {
-         ThreadedBufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
+         ThreadedBufferBuilderPersistentStorage.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
          this.reset();
          return bufferbuilder$renderedbuffer;
       }
    }
 
-   public ThreadedBufferBuilder.RenderedBuffer end() {
+   public ThreadedBufferBuilderPersistentStorage.RenderedBuffer end() {
+      this.lastNextElementByte = this.nextElementByte;
       this.ensureDrawing();
-      ThreadedBufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
+      ThreadedBufferBuilderPersistentStorage.RenderedBuffer bufferbuilder$renderedbuffer = this.storeRenderedBuffer();
       this.reset();
       return bufferbuilder$renderedbuffer;
    }
@@ -215,7 +227,7 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
       }
    }
 
-   private ThreadedBufferBuilder.RenderedBuffer storeRenderedBuffer() {
+   private ThreadedBufferBuilderPersistentStorage.RenderedBuffer storeRenderedBuffer() {
       int i = this.mode.indexCount(this.vertices);
       int j = !this.indexOnly ? this.vertices * this.format.getVertexSize() : 0;
       VertexFormat.IndexType vertexformat$indextype = VertexFormat.IndexType.least(i);
@@ -236,8 +248,8 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
       int i1 = this.renderedBufferPointer;
       this.renderedBufferPointer += k;
       ++this.renderedBufferCount;
-      ThreadedBufferBuilder.DrawState bufferbuilder$drawstate = new ThreadedBufferBuilder.DrawState(this.format, this.vertices, i, this.mode, vertexformat$indextype, this.indexOnly, flag);
-      return new ThreadedBufferBuilder.RenderedBuffer(i1, bufferbuilder$drawstate);
+      ThreadedBufferBuilderPersistentStorage.DrawState bufferbuilder$drawstate = new ThreadedBufferBuilderPersistentStorage.DrawState(this.format, this.vertices, i, this.mode, vertexformat$indextype, this.indexOnly, flag);
+      return new ThreadedBufferBuilderPersistentStorage.RenderedBuffer(i1, bufferbuilder$drawstate);
    }
 
    private void reset() {
@@ -408,29 +420,38 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
    @OnlyIn(Dist.CLIENT)
    public class RenderedBuffer {
       private final int pointer;
-      private final ThreadedBufferBuilder.DrawState drawState;
+      private final ThreadedBufferBuilderPersistentStorage.DrawState drawState;
       private boolean released;
 
-      RenderedBuffer(int p_231194_, ThreadedBufferBuilder.DrawState p_231195_) {
+      RenderedBuffer(int p_231194_, ThreadedBufferBuilderPersistentStorage.DrawState p_231195_) {
          this.pointer = p_231194_;
          this.drawState = p_231195_;
       }
 
+      /*public ByteBuffer vertexBuffer() {
+         return ThreadedBufferBuilderPersistentStorage.this.buffer;
+      }
+
+      public ByteBuffer indexBuffer() {
+         return ThreadedBufferBuilderPersistentStorage.this.buffer;
+      }*/
+
       public ByteBuffer vertexBuffer() {
          int i = this.pointer + this.drawState.vertexBufferStart();
          int j = this.pointer + this.drawState.vertexBufferEnd();
-         return ThreadedBufferBuilder.this.bufferSlice(i, j);
+         return ThreadedBufferBuilderPersistentStorage.this.bufferSlice(i, j);
       }
 
       public ByteBuffer indexBuffer() {
          int i = this.pointer + this.drawState.indexBufferStart();
          int j = this.pointer + this.drawState.indexBufferEnd();
-         return ThreadedBufferBuilder.this.bufferSlice(i, j);
+         return ThreadedBufferBuilderPersistentStorage.this.bufferSlice(i, j);
       }
 
-      public ThreadedBufferBuilder.DrawState drawState() {
+      public ThreadedBufferBuilderPersistentStorage.DrawState drawState() {
          return this.drawState;
       }
+
 
       public boolean isEmpty() {
          return this.drawState.vertexCount == 0;
@@ -440,9 +461,13 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
          if (this.released) {
             throw new IllegalStateException("Buffer has already been released!");
          } else {
-            ThreadedBufferBuilder.this.releaseRenderedBuffer();
+            ThreadedBufferBuilderPersistentStorage.this.releaseRenderedBuffer();
             this.released = true;
          }
+      }
+
+      public boolean isReleased() {
+         return released;
       }
    }
 
@@ -471,5 +496,17 @@ public class ThreadedBufferBuilder extends DefaultedVertexConsumer implements Bu
       this.buffer.position(0);
       this.vertices += buffer.limit() / this.format.getVertexSize();
       this.nextElementByte += buffer.limit();
+   }
+
+   public ByteBuffer getBuffer() {
+      return buffer;
+   }
+
+   public int getLastNextElementByte() {
+      return lastNextElementByte;
+   }
+
+   public int getRenderedBufferCount() {
+      return renderedBufferCount;
    }
 }

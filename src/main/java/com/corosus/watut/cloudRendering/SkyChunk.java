@@ -80,12 +80,15 @@ public class SkyChunk {
         //return lastBuildTime + rebuildFrequency < Minecraft.getInstance().level.getGameTime();
 
         rebuildFrequency = 20*5;
-        rebuildFrequency = 1;
+        //rebuildFrequency = 20*2;
+        //rebuildFrequency = 1;
 
         //keep all skychunks updating in sync, or immediately if new
         //if its 2 updates behind (because it just came into range, force a new build
-        if (lastBuildTime + (rebuildFrequency * 2) < Minecraft.getInstance().level.getGameTime()) return true;
-        return lastBuildTime == 0 || Minecraft.getInstance().level.getGameTime() % rebuildFrequency == 0;
+        //if (lastBuildTime + (rebuildFrequency * 2) < Minecraft.getInstance().level.getGameTime()) return true;
+        if (lastBuildTime == 0 || lastBuildTime + (rebuildFrequency * 1) < Minecraft.getInstance().level.getGameTime()) return true;
+        //return lastBuildTime == 0 || Minecraft.getInstance().level.getGameTime() % rebuildFrequency == 0;
+        return false;
     }/*
 
     public synchronized boolean isWaitingToUploadData() {
