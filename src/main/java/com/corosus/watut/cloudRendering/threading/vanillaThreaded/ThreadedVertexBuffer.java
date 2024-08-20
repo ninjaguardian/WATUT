@@ -110,6 +110,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
 
    public void draw() {
       RenderSystem.drawElements(this.mode.asGLMode, this.indexCount, this.getIndexType().asGLType);
+      //CULog.log("this.indexCount " + this.indexCount);
    }
 
    private VertexFormat.IndexType getIndexType() {
