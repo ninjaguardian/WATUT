@@ -8,6 +8,7 @@ uniform vec4 ColorModulator;
 uniform float FogStart;
 uniform float FogEnd;
 uniform vec4 FogColor;
+uniform vec3 Lightning_Pos;
 
 in vec2 texCoord0;
 in float vertexDistance;
@@ -97,11 +98,24 @@ float rand(vec2 co){
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+// 8x8 Bayer matrix (values 0 to 63 normalized to 0.0 to 1.0)
+const float ditherMatrix[8][8] = float[8][8](
+float[8](0.0/64.0, 32.0/64.0, 8.0/64.0, 40.0/64.0, 2.0/64.0, 34.0/64.0, 10.0/64.0, 42.0/64.0),
+float[8](48.0/64.0, 16.0/64.0, 56.0/64.0, 24.0/64.0, 50.0/64.0, 18.0/64.0, 58.0/64.0, 26.0/64.0),
+float[8](12.0/64.0, 44.0/64.0, 4.0/64.0, 36.0/64.0, 14.0/64.0, 46.0/64.0, 6.0/64.0, 38.0/64.0),
+float[8](60.0/64.0, 28.0/64.0, 52.0/64.0, 20.0/64.0, 62.0/64.0, 30.0/64.0, 54.0/64.0, 22.0/64.0),
+float[8](3.0/64.0, 35.0/64.0, 11.0/64.0, 43.0/64.0, 1.0/64.0, 33.0/64.0, 9.0/64.0, 41.0/64.0),
+float[8](51.0/64.0, 19.0/64.0, 59.0/64.0, 27.0/64.0, 49.0/64.0, 17.0/64.0, 57.0/64.0, 25.0/64.0),
+float[8](15.0/64.0, 47.0/64.0, 7.0/64.0, 39.0/64.0, 13.0/64.0, 45.0/64.0, 5.0/64.0, 37.0/64.0),
+float[8](63.0/64.0, 31.0/64.0, 55.0/64.0, 23.0/64.0, 61.0/64.0, 29.0/64.0, 53.0/64.0, 21.0/64.0)
+);
+
 void main() {
     vec4 color = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
-    if (color.a < 0.1) {
+    /*if (color.a < 0.1) {
         discard;
-    }
+    }*/
+    //color.a = 0.5F;
     /*color.r = 0;
     color.g = 0;
     color.b = 0;*/
@@ -111,8 +125,21 @@ void main() {
 
     float rand = rand(texCoord0);
 
+    // Calculate the position within the 8x8 matrix
+    ivec2 pos = ivec2(mod(gl_FragCoord.xy, 8.0));
+
+    // Fetch the corresponding dither value
+    float ditherValue = ditherMatrix[pos.y][pos.x];
+
     //fragColor = color;//linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
-    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+    //fragColor = linear_fog(color, vertexDistance, 50, 512, FogColor);
+    // Apply dithering based on the transparency level
+    if (Lightning_Pos.x > ditherValue) {
+        fragColor = linear_fog(color, vertexDistance, 50, 512, FogColor);
+    } else {
+        discard;  // Discard the fragment to create transparency
+    }
+    //fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
     //fragColor.w *= rand;
     //fragColor = testReturn;
     //vec4 test2 = mainImage(test);

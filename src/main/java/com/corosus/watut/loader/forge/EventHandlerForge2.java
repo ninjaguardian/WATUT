@@ -39,6 +39,10 @@ public class EventHandlerForge2 {
             event.setFarPlaneDistance(0.5F);
             event.setCanceled(true);
         }
+
+        /*event.setNearPlaneDistance(50);
+        event.setFarPlaneDistance(500F);
+        event.setCanceled(true);*/
     }
 
     @SubscribeEvent

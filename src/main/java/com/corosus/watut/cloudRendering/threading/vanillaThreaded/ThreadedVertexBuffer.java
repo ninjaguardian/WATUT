@@ -38,12 +38,12 @@ public class ThreadedVertexBuffer implements AutoCloseable {
       this.arrayObjectId = GlStateManager._glGenVertexArrays();
    }
 
-   public void upload(ThreadedBufferBuilderPersistentStorage.RenderedBuffer p_231222_) {
+   public void upload(ThreadedBufferBuilder.RenderedBuffer p_231222_) {
       if (!this.isInvalid()) {
          RenderSystem.assertOnRenderThread();
 
          try {
-            ThreadedBufferBuilderPersistentStorage.DrawState bufferbuilder$drawstate = p_231222_.drawState();
+            ThreadedBufferBuilder.DrawState bufferbuilder$drawstate = p_231222_.drawState();
             this.format = this.uploadVertexBuffer(bufferbuilder$drawstate, p_231222_.vertexBuffer());
             this.sequentialIndices = this.uploadIndexBuffer(bufferbuilder$drawstate, p_231222_.indexBuffer());
             this.indexCount = bufferbuilder$drawstate.indexCount();
@@ -56,7 +56,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
       }
    }
 
-   private VertexFormat uploadVertexBuffer(ThreadedBufferBuilderPersistentStorage.DrawState p_231219_, ByteBuffer p_231220_) {
+   private VertexFormat uploadVertexBuffer(ThreadedBufferBuilder.DrawState p_231219_, ByteBuffer p_231220_) {
       boolean flag = false;
       if (!p_231219_.format().equals(this.format)) {
          if (this.format != null) {
@@ -84,7 +84,7 @@ public class ThreadedVertexBuffer implements AutoCloseable {
    }
 
    @Nullable
-   private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(ThreadedBufferBuilderPersistentStorage.DrawState p_231224_, ByteBuffer p_231225_) {
+   private RenderSystem.AutoStorageIndexBuffer uploadIndexBuffer(ThreadedBufferBuilder.DrawState p_231224_, ByteBuffer p_231225_) {
       if (!p_231224_.sequentialIndex()) {
          GlStateManager._glBindBuffer(34963, this.indexBufferId);
          RenderSystem.glBufferData(34963, p_231225_, this.usage.id);

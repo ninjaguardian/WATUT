@@ -45,6 +45,7 @@ public class EventHandlerForge {
     public void onGameTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             WatutMod.getPlayerStatusManagerClient().tickGame();
+            WatutMod.cloudRenderHandler.tickClient();
         }
     }
 
