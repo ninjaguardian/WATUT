@@ -39,6 +39,7 @@ public class SkyChunk {
     private boolean isInitialized = false;
     //private boolean beingBuilt = false;
     private long lastBuildTime = 0;
+    private long lastUploadTime = 0;
     private int rebuildFrequency = 20*5;
     private boolean isWaitingToUploadData = false;
 
@@ -72,9 +73,19 @@ public class SkyChunk {
         return y;
     }
 
+    public long getLastUploadTime() {
+        return lastUploadTime;
+    }
+
+    public void setLastUploadTime(long lastUploadTime) {
+        this.lastUploadTime = lastUploadTime;
+    }
+
     public int getZ() {
         return z;
     }/*
+
+
 
     public boolean isBeingBuilt() {
         return beingBuilt;
