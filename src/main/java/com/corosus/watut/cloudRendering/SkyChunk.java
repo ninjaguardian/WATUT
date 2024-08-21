@@ -330,7 +330,7 @@ public class SkyChunk {
                     '}';
         }
 
-        public List<Direction> getRenderableSides() {
+        public List<Direction> getRenderableSides(HashMap<Long, SkyChunk.SkyChunkPoint> skyChunkPoints) {
             List<Direction> listRenderables = new ArrayList<>();
             for (Direction dir : Direction.values()) {
                 int xCheck = x + dir.getStepX();
@@ -341,11 +341,11 @@ public class SkyChunk {
                 if (xCheck >= 0 && xCheck <= SkyChunk.size &&
                         yCheck >= 0 && yCheck <= SkyChunk.size &&
                         zCheck >= 0 && zCheck <= SkyChunk.size) {
-                    if (!skyChunk.getPointsOffThread().containsKey(hash)) {
+                    if (!skyChunkPoints.containsKey(hash)) {
                         listRenderables.add(dir);
                     }
                 } else {
-                    if (!skyChunk.getPointsOffThread().containsKey(hash)) {
+                    if (!skyChunkPoints.containsKey(hash)) {
                         listRenderables.add(dir);
                     }
                 }

@@ -213,7 +213,7 @@ public class ThreadedCloudBuilder {
         boolean buildSlowClouds = lastBuildTime <= Minecraft.getInstance().level.getGameTime();
         if (buildSlowClouds) {
             rebuildFrequency = 20*1;
-            rebuildFrequency = 40;
+            rebuildFrequency = 20 * 5;
             lastBuildTime = Minecraft.getInstance().level.getGameTime() + rebuildFrequency;
             for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding()) {
                 if (true || skyChunk.needsBuild()) {
@@ -260,7 +260,7 @@ public class ThreadedCloudBuilder {
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
                 //renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale));
                 RenderableData renderableData = null;
-                this.generateCloud(WatutMod.threadedBufferBuilder, 110, 130, 150, vec3, scale, renderableData, ii);
+                this.generateCloud(WatutMod.threadedBufferBuilder, 110 / scale, 130 / scale, 150 / scale, vec3, scale, renderableData, ii);
                 //this.generateCloud(WatutMod.threadedBufferBuilder, 0, 100, 0, vec3, scale, renderableData, ii);
                 //this.generateCloud(WatutMod.threadedBufferBuilder, 1460, cloudsY, 882, vec3, scale, renderableData, ii);
                 //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = ;
@@ -316,9 +316,9 @@ public class ThreadedCloudBuilder {
                 skyChunk.populateToBeRemovedPoints();
 
                 //skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(WatutMod.threadedBufferBuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
-                skyChunk.getRenderableData().setVbo(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadAlreadyExisting().values(), 0, cloudsY, 0, vec3, scale));
-                skyChunk.getRenderableData().setVboAddedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingAdded().values(), 0, cloudsY, 0, vec3, scale));
-                skyChunk.getRenderableData().setVboRemovedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingRemoved().values(), 0, cloudsY, 0, vec3, scale));
+                skyChunk.getRenderableData().setVbo(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadAlreadyExisting(), 0, cloudsY, 0, vec3, scale));
+                skyChunk.getRenderableData().setVboAddedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingAdded(), 0, cloudsY, 0, vec3, scale));
+                skyChunk.getRenderableData().setVboRemovedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingRemoved(), 0, cloudsY, 0, vec3, scale));
 
                 skyChunk.setLastBuildTime(getTicksVolatile());
 
@@ -332,108 +332,17 @@ public class ThreadedCloudBuilder {
         return true;
     }
 
-    public void doWork() {
-        pointCount = 0;
-        quadCount = 0;
-
-        //unused
-        Vec3 vec3 = new Vec3(0, 0, 0);
-
-        if (multiBufferMode) {
-            //TODO: REUSE THE BUFFERS, STOP MAKING NEW ONES
-            ////renderableClouds.clear();
-            //renderableCloudsToAdd.clear();
-
-            rand = new Random(5);
-
-            ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
-            //timeOffset = this.getTicks();
-
-            //clear out old skychunk data
-            for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
-                //skyChunk.setBeingBuilt(true);
-                skyChunk.getPointsOffThread().clear();
-            }
-
-            //FIRST WE ITERATE CLOUDS TO PUT INTO SKYCHUNK DATA
-
-            testOnce = false;
-
-            for (int ii = 0; ii < cloudCount; ii++) {
-
-                if (rand.nextFloat() <= 0.5F) continue;
-
-                //VertexBuffer cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-                int offsetXZ = (int) (20 * scale) / 2;
-                //offsetXZ = 0;
-
-                //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
-                //renderableCloud.setRenderedBuffer(this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale));
-                RenderableData renderableData = null;
-                this.generateCloud(bufferbuilder, 0, cloudsY, 0, vec3, scale, renderableData, ii);
-                //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = ;
-                //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
-                //cloudBuffer.bind();
-                //cloudBuffer.upload(bufferbuilder$renderedbuffer);
-
-                //VertexBuffer.unbind();
-            }
-
-            //new algo cloud step
-            //generateAlgoCloud(bufferbuilder, 0, cloudsY, 0, vec3, scale);
-
-            //THEN WE RENDER THE SKYCHUNKS INTO VBOS
-
-            Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
-            this.setCamVec(vecCam);
-
-            for (SkyChunk skyChunk : SkyChunkManager.instance().getSkyChunks().values()) {
-                skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
-                skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(WatutMod.threadedBufferBuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
-            }
-
-            //System.out.println("skychunk count: " + SkyChunkManager.instance().getSkyChunks().size());
-
-
-        }/* else {
-            ThreadedBufferBuilder bufferbuilder = ThreadedTesselator.getInstance().getBuilder();
-            if (this.cloudBuffer != null) {
-                this.cloudBuffer.close();
-            }
-
-            this.cloudBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-            //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.buildClouds(bufferbuilder, d2, d3, d4, vec3);
-
-            //from the cloud grid size
-            float scale = 3;
-            int offsetXZ = (int) (20 * scale) / 2;
-
-            //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, d3, 0 - pos.z, vec3, 0.5F);
-            timeOffset = this.getTicks();
-            rand = new Random(5);
-            ThreadedBufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, -offsetXZ, 140, -offsetXZ, vec3, scale);
-            //BufferBuilder.RenderedBuffer bufferbuilder$renderedbuffer = this.renderVBO(bufferbuilder, 0 - pos.x, 0, 0 - pos.z, vec3, 0.5F);
-            this.cloudBuffer.bind();
-            this.cloudBuffer.upload(bufferbuilder$renderedbuffer);
-            VertexBuffer.unbind();
-        }*/
-
-        /*CULog.log("total clouds point count: " + pointCount);
-        CULog.log("total clouds quad count: " + quadCount);
-        CULog.log("total vbos count: " + SkyChunkManager.instance().getSkyChunks().size());*/
-    }
-
-    private ThreadedBufferBuilder.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+    /*private ThreadedBufferBuilder.RenderedBuffer renderSkyChunkVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
 
         bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
         //TODO: implement hasData or simply remove all data points in skychunk before each new vbo build
-        /*if (skyChunk.hasData() || true) {
+        *//*if (skyChunk.hasData() || true) {
 
-        }*/
+        }*//*
 
         for (SkyChunk.SkyChunkPoint entry : skyChunk.getPointsOffThread().values()) {
-            List<Direction> listRenderables = entry.getRenderableSides();
+            List<Direction> listRenderables = entry.getRenderableSides(true);
             float dist = entry.calculateNormalizedDistanceToOutside();
             entry.setNormalizedDistanceToOutside(dist);
             renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
@@ -442,17 +351,18 @@ public class ThreadedCloudBuilder {
         }
 
         return bufferIn.end();
-    }
+    }*/
 
-    private ThreadedBufferBuilder.RenderedBuffer pointsToVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, Collection<SkyChunk.SkyChunkPoint> skyChunkPoints, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+    private ThreadedBufferBuilder.RenderedBuffer pointsToVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, HashMap<Long, SkyChunk.SkyChunkPoint> skyChunkPoints, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
 
         bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
-        for (SkyChunk.SkyChunkPoint entry : skyChunkPoints) {
+        for (SkyChunk.SkyChunkPoint entry : skyChunkPoints.values()) {
             //TODO: these might not work correctly now that theres 3 different sets of data
-            List<Direction> listRenderables = entry.getRenderableSides();
+            List<Direction> listRenderables = entry.getRenderableSides(skyChunkPoints);
             float dist = entry.calculateNormalizedDistanceToOutside();
             entry.setNormalizedDistanceToOutside(dist);
+            //entry.setNormalizedDistanceToOutside(0.5F);
             renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
                     new Vector3f((skyChunk.getX() * SkyChunk.size) + entry.getX(), (skyChunk.getY() * SkyChunk.size) + entry.getY(), (skyChunk.getZ() * SkyChunk.size) + entry.getZ())
                     , scale, listRenderables, entry);
@@ -487,7 +397,7 @@ public class ThreadedCloudBuilder {
         //TODO: use time value set at start of job, not this
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
-        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
+        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 0.2F);
         //System.out.println(time);
         //time = 202985;
         //time = 0;
@@ -508,7 +418,7 @@ public class ThreadedCloudBuilder {
                     double scaleP = 10;
                     double noiseVal = perlinNoise.getValue(((indexX) * scaleP) + time, ((indexY) * scaleP) + time,((indexZ) * scaleP) + time)/* + 0.2F*/;
 
-                    float noiseThreshAdj = 0.2F;
+                    float noiseThreshAdj = (float) (0.2F + (Math.sin(time * 0.1F) * 0.1F));
                     if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
                         skyChunk.addPoint(false, x, y + offsetY, z);
                         //SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
@@ -698,7 +608,7 @@ public class ThreadedCloudBuilder {
         //TODO: use time value set at start of job, not this
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 1F);
-        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F);
+        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.8F);
         time += (cloudIndex * 25);
         //time = 0;

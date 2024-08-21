@@ -71,7 +71,7 @@ public class CloudRenderHandler {
 
     public void tickClient() {
         long time = getTicks();
-        if (time % (20 * 60) == 0) {
+        if (time % (20 * 60 * 5) == 0) {
             posCloudOffset = new Vec3(0, 0, 0);
         }
 
@@ -118,10 +118,10 @@ public class CloudRenderHandler {
         threadedCloudBuilder.setSizeZ(40);
 
         threadedCloudBuilder.setScale(4);
-        threadedCloudBuilder.setScale(1);
+        //threadedCloudBuilder.setScale(1);
         threadedCloudBuilder.setCloudsY(200 / threadedCloudBuilder.getScale());
         skyChunkRenderRadius = Minecraft.getInstance().options.renderDistance().get() / 4;
-        skyChunkRenderRadius = 3;
+        skyChunkRenderRadius = 4;
 
 
         //initSkyChunksForGrid();
@@ -278,11 +278,12 @@ public class CloudRenderHandler {
                         //TEMP
                         //float fade = (float) Math.sin((float)ticksSinceVBOUpdate * 0.2F) * 0.5F + 0.49F;//Mth.clamp(0, 9999, );
                         long timeSinceUpload = time - skyChunk.getLastUploadTime();
-                        int fadeTicks = 30;
+                        int fadeTicks = 20 * 2;
                         float fade = timeSinceUpload * (1F / fadeTicks);
                         if (timeSinceUpload > fadeTicks) {
                             fade = 1F;
                         }
+                        //fade = 1F;
                         WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1F, 0, 0));
 
                         ShaderInstance shaderinstance = RenderSystem.getShader();
@@ -298,7 +299,7 @@ public class CloudRenderHandler {
                         WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 0, 0));
 
                         renderableData.getVertexBufferRemovedPoints().bind();
-                        //renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                        renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
                         ThreadedVertexBuffer.unbind();
 
                         RenderSystem.enableCull();
