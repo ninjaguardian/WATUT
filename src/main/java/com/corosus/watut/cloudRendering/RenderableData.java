@@ -9,10 +9,14 @@ public class RenderableData {
 
     //alternating buffers for off thread building
     private ThreadedVertexBuffer vertexBufferA;
+    private ThreadedVertexBuffer vertexBufferAddedPoints;
+    private ThreadedVertexBuffer vertexBufferRemovedPoints;
     //private ThreadedVertexBuffer vertexBufferB;
 
     //skychunk VBO data
     private ThreadedBufferBuilder.RenderedBuffer vbo;
+    private ThreadedBufferBuilder.RenderedBuffer vboAddedPoints;
+    private ThreadedBufferBuilder.RenderedBuffer vboRemovedPoints;
 
     //data for uniform
     private Vector3f lightningPos;
@@ -26,6 +30,8 @@ public class RenderableData {
 
     public void initBuffersIfNeeded() {
         if (vertexBufferA == null) vertexBufferA = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
+        if (vertexBufferAddedPoints == null) vertexBufferAddedPoints = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
+        if (vertexBufferRemovedPoints == null) vertexBufferRemovedPoints = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
         //if (vertexBufferB == null) vertexBufferB = new ThreadedVertexBuffer(ThreadedVertexBuffer.Usage.STATIC);
     }
 
@@ -49,6 +55,30 @@ public class RenderableData {
 
     public void setVbo(ThreadedBufferBuilder.RenderedBuffer vbo) {
         this.vbo = vbo;
+    }
+
+    public ThreadedBufferBuilder.RenderedBuffer getVboAddedPoints() {
+        return vboAddedPoints;
+    }
+
+    public void setVboAddedPoints(ThreadedBufferBuilder.RenderedBuffer vboAddedPoints) {
+        this.vboAddedPoints = vboAddedPoints;
+    }
+
+    public ThreadedBufferBuilder.RenderedBuffer getVboRemovedPoints() {
+        return vboRemovedPoints;
+    }
+
+    public void setVboRemovedPoints(ThreadedBufferBuilder.RenderedBuffer vboRemovedPoints) {
+        this.vboRemovedPoints = vboRemovedPoints;
+    }
+
+    public ThreadedVertexBuffer getVertexBufferAddedPoints() {
+        return vertexBufferAddedPoints;
+    }
+
+    public ThreadedVertexBuffer getVertexBufferRemovedPoints() {
+        return vertexBufferRemovedPoints;
     }
 
     public Vector3f getLightningPos() {

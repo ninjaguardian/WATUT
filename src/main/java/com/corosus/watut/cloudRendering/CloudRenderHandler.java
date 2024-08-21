@@ -148,12 +148,20 @@ public class CloudRenderHandler {
                 renderableData.getActiveRenderingVertexBuffer().bind();
                 long time = System.currentTimeMillis();
                 renderableData.getActiveRenderingVertexBuffer().upload(renderableData.getVbo());
+                ThreadedVertexBuffer.unbind();
+
+                renderableData.getVertexBufferAddedPoints().bind();
+                renderableData.getVertexBufferAddedPoints().upload(renderableData.getVboAddedPoints());
+                ThreadedVertexBuffer.unbind();
+
+                renderableData.getVertexBufferRemovedPoints().bind();
+                renderableData.getVertexBufferRemovedPoints().upload(renderableData.getVboRemovedPoints());
+                ThreadedVertexBuffer.unbind();
 
                 //CULog.log("upload time: " + (System.currentTimeMillis() - time) + " - " + skyChunk.getPointsOffThread().size() + " points");
                 skyChunk.setInitialized(true);
                 //skyChunk.setCameraPosForRender(skyChunk.getCameraPosDuringBuild());
                 skyChunk.pushNewOffThreadDataToMainThread();
-                ThreadedVertexBuffer.unbind();
                 //skyChunk.setBeingBuilt(false);
 
                 //remove from upload queue
@@ -264,12 +272,26 @@ public class CloudRenderHandler {
                             WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(0, -999, 0));
                         }
 
-                        float fade = (float) Math.sin((float)time * 0.1F) * 0.5F + 0.49F;//Mth.clamp(0, 9999, );
-                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(fade, 0, 0));
+                        //TEMP
+                        float fade = (float) Math.sin((float)time * 0.2F) * 0.5F + 0.49F;//Mth.clamp(0, 9999, );
+                        float fade2 = (float) Math.sin((float)time * 0.2F) * 0.5F + 0.49F;//Mth.clamp(0, 9999, );
+                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1F, 0, 0));
 
                         ShaderInstance shaderinstance = RenderSystem.getShader();
                         renderableData.getActiveRenderingVertexBuffer().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
-                        VertexBuffer.unbind();
+                        ThreadedVertexBuffer.unbind();
+
+                        //WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(fade, 0, 0));
+
+                        renderableData.getVertexBufferAddedPoints().bind();
+                        renderableData.getVertexBufferAddedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                        ThreadedVertexBuffer.unbind();
+
+                        //WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 0, 0));
+
+                        renderableData.getVertexBufferRemovedPoints().bind();
+                        //renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                        ThreadedVertexBuffer.unbind();
 
                         RenderSystem.enableCull();
                     }

@@ -8,9 +8,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 //cubic sky chunk
 public class SkyChunk {
@@ -24,8 +22,18 @@ public class SkyChunk {
     public static int size = 32;
 
     //TODO: we could replace this with what chunks use, look around use to turn x y z into efficient storage by index of CrudeIncrementalIntIdentityHashBiMap and PalletedContainer.Strategy
+
+    //used for player in cloud fog
     private HashMap<Long, SkyChunkPoint> lookupPointsMainThread = new HashMap<>();
-    private HashMap<Long, SkyChunkPoint> lookupPointsOffThread = new HashMap<>();
+
+    //used for vbo building
+    private boolean useOffThreadA = true;
+    private HashMap<Long, SkyChunkPoint> lookupPointsOffThreadA = new HashMap<>();
+    private HashMap<Long, SkyChunkPoint> lookupPointsOffThreadB = new HashMap<>();
+
+    private HashMap<Long, SkyChunkPoint> lookupPointsOffThreadAlreadyExisting = new HashMap<>();
+    private HashMap<Long, SkyChunkPoint> lookupPointsOffThreadBeingAdded = new HashMap<>();
+    private HashMap<Long, SkyChunkPoint> lookupPointsOffThreadBeingRemoved = new HashMap<>();
 
     //tells main thread that it can be safely used
     private boolean isInitialized = false;
@@ -129,8 +137,40 @@ public class SkyChunk {
         return lookupPointsMainThread;
     }
 
+    public void swapOffThreadUse() {
+        useOffThreadA = !useOffThreadA;
+    }
+
+    public boolean isUseOffThreadA() {
+        return useOffThreadA;
+    }
+
     public HashMap<Long, SkyChunkPoint> getPointsOffThread() {
-        return lookupPointsOffThread;
+        if (useOffThreadA) {
+            return lookupPointsOffThreadA;
+        } else {
+            return lookupPointsOffThreadB;
+        }
+    }
+
+    public HashMap<Long, SkyChunkPoint> getPointsOffThreadPrevUpdate() {
+        if (useOffThreadA) {
+            return lookupPointsOffThreadB;
+        } else {
+            return lookupPointsOffThreadA;
+        }
+    }
+
+    public HashMap<Long, SkyChunkPoint> getLookupPointsOffThreadAlreadyExisting() {
+        return lookupPointsOffThreadAlreadyExisting;
+    }
+
+    public HashMap<Long, SkyChunkPoint> getLookupPointsOffThreadBeingAdded() {
+        return lookupPointsOffThreadBeingAdded;
+    }
+
+    public HashMap<Long, SkyChunkPoint> getLookupPointsOffThreadBeingRemoved() {
+        return lookupPointsOffThreadBeingRemoved;
     }
 
     public boolean isInitialized() {
@@ -160,7 +200,7 @@ public class SkyChunk {
     //uses internal pos values
     public SkyChunkPoint getPoint(boolean mainThread, int x, int y, int z) {
         long hash = BlockPos.asLong(x, y, z);
-        return mainThread ? lookupPointsMainThread.get(hash) : lookupPointsOffThread.get(hash);
+        return mainThread ? lookupPointsMainThread.get(hash) : useOffThreadA ? lookupPointsOffThreadA.get(hash) : lookupPointsOffThreadB.get(hash);
     }
 
     public long getLongHashCode() {
@@ -174,16 +214,33 @@ public class SkyChunk {
         long hash = BlockPos.asLong(x, y, z);
         if (mainThread) {
             if (!lookupPointsMainThread.containsKey(hash)) {
-                SkyChunkPoint cloudPoint = new SkyChunkPoint(lookupPointsMainThread, x, y, z);
+                SkyChunkPoint cloudPoint = new SkyChunkPoint(this, x, y, z);
                 lookupPointsMainThread.put(hash, cloudPoint);
             }
         } else {
-            if (!lookupPointsOffThread.containsKey(hash)) {
-                SkyChunkPoint cloudPoint = new SkyChunkPoint(lookupPointsOffThread, x, y, z);
-                lookupPointsOffThread.put(hash, cloudPoint);
+
+            if (!getPointsOffThread().containsKey(hash)) {
+                SkyChunkPoint cloudPoint = new SkyChunkPoint(this, x, y, z);
+                getPointsOffThread().put(hash, cloudPoint);
+
+
+                if (!getPointsOffThreadPrevUpdate().containsKey(hash)) {
+                    getLookupPointsOffThreadBeingAdded().put(hash, cloudPoint);
+                } else {
+                    getLookupPointsOffThreadAlreadyExisting().put(hash, cloudPoint);
+                }
             }
         }
         return hash;
+    }
+
+    public void populateToBeRemovedPoints() {
+        for (Iterator<Map.Entry<Long, SkyChunkPoint>> it = getPointsOffThreadPrevUpdate().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Long, SkyChunkPoint> entry = it.next();
+            if (!getPointsOffThread().containsKey(entry.getKey())) {
+                getLookupPointsOffThreadBeingRemoved().put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     public void pushNewOffThreadDataToMainThread() {
@@ -202,13 +259,14 @@ public class SkyChunk {
         private float normalizedDistanceToOutside = 1F;
 
         //private SkyChunk skyChunk;
-        private HashMap<Long, SkyChunkPoint> lookupPoints;
+        //private HashMap<Long, SkyChunkPoint> lookupPoints;
+        private SkyChunk skyChunk;
 
-        public SkyChunkPoint(HashMap<Long, SkyChunkPoint> lookupPoints, int x, int y, int z) {
+        public SkyChunkPoint(SkyChunk skyChunk, int x, int y, int z) {
             this.x = x;
             this.y = y;
             this.z = z;
-            this.lookupPoints = lookupPoints;
+            this.skyChunk = skyChunk;
         }
 
         public float getShapeAdjustThreshold() {
@@ -272,11 +330,11 @@ public class SkyChunk {
                 if (xCheck >= 0 && xCheck <= SkyChunk.size &&
                         yCheck >= 0 && yCheck <= SkyChunk.size &&
                         zCheck >= 0 && zCheck <= SkyChunk.size) {
-                    if (!lookupPoints.containsKey(hash)) {
+                    if (!skyChunk.getPointsOffThread().containsKey(hash)) {
                         listRenderables.add(dir);
                     }
                 } else {
-                    if (!lookupPoints.containsKey(hash)) {
+                    if (!skyChunk.getPointsOffThread().containsKey(hash)) {
                         listRenderables.add(dir);
                     }
                 }
@@ -301,14 +359,14 @@ public class SkyChunk {
                 if (xCheck >= 0 && xCheck <= SkyChunk.size &&
                         yCheck >= 0 && yCheck <= SkyChunk.size &&
                         zCheck >= 0 && zCheck <= SkyChunk.size) {
-                    if (!lookupPoints.containsKey(hash)) {
+                    if (!skyChunk.getPointsOffThread().containsKey(hash)) {
                         boolean stillClear = true;
                         //if we want spots below an upper portion of the cloud to appear dark, as if blocked by the sun
                         //for bigger gaps this might not be ideal
                         for (int xxx = 0; xxx <= maxLookAhead; xxx++) {
                             int yyCheck = yCheck + xxx;
                             long hash2 = BlockPos.asLong(xCheck, yyCheck, zCheck);
-                            if (lookupPoints.containsKey(hash2)) {
+                            if (skyChunk.getPointsOffThread().containsKey(hash2)) {
                                 stillClear = false;
                                 break;
                             }
