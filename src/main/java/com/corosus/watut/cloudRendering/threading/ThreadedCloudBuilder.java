@@ -214,6 +214,7 @@ public class ThreadedCloudBuilder {
         if (buildSlowClouds) {
             rebuildFrequency = 20*1;
             rebuildFrequency = 20 * 5;
+            //rebuildFrequency = 5;
             lastBuildTime = Minecraft.getInstance().level.getGameTime() + rebuildFrequency;
             for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding()) {
                 if (true || skyChunk.needsBuild()) {
@@ -316,9 +317,18 @@ public class ThreadedCloudBuilder {
                 skyChunk.populateToBeRemovedPoints();
 
                 //skyChunk.getRenderableData().setVbo(renderSkyChunkVBO(WatutMod.threadedBufferBuilder, skyChunk, 0, cloudsY, 0, vec3, scale));
+                calculateNormalizedDistanceToOutside(WatutMod.threadedBufferBuilder, skyChunk, 0, cloudsY, 0, vec3, scale);
                 skyChunk.getRenderableData().setVbo(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadAlreadyExisting(), 0, cloudsY, 0, vec3, scale));
+                //TODO: using these is exploding the buffer size, why? and it continues after i turn them off until a restart
                 skyChunk.getRenderableData().setVboAddedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingAdded(), 0, cloudsY, 0, vec3, scale));
                 skyChunk.getRenderableData().setVboRemovedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingRemoved(), 0, cloudsY, 0, vec3, scale));
+
+                //CULog.log("skyChunk.getPointsOffThreadPrevUpdate() " + skyChunk.getPointsOffThreadPrevUpdate().size());
+                /*CULog.log("skyChunk.getLookupPointsOffThreadA() " + skyChunk.getLookupPointsOffThreadA().size());
+                CULog.log("skyChunk.getLookupPointsOffThreadB() " + skyChunk.getLookupPointsOffThreadB().size());
+                CULog.log("skyChunk.getLookupPointsOffThreadAlreadyExisting() " + skyChunk.getLookupPointsOffThreadAlreadyExisting().size());
+                CULog.log("skyChunk.getLookupPointsOffThreadBeingAdded() " + skyChunk.getLookupPointsOffThreadBeingAdded().size());
+                CULog.log("skyChunk.getLookupPointsOffThreadBeingRemoved() " + skyChunk.getLookupPointsOffThreadBeingRemoved().size());*/
 
                 skyChunk.setLastBuildTime(getTicksVolatile());
 
@@ -360,8 +370,9 @@ public class ThreadedCloudBuilder {
         for (SkyChunk.SkyChunkPoint entry : skyChunkPoints.values()) {
             //TODO: these might not work correctly now that theres 3 different sets of data
             List<Direction> listRenderables = entry.getRenderableSides(skyChunkPoints);
-            float dist = entry.calculateNormalizedDistanceToOutside();
-            entry.setNormalizedDistanceToOutside(dist);
+            //float dist = entry.calculateNormalizedDistanceToOutside();
+
+            //entry.setNormalizedDistanceToOutside(dist);
             //entry.setNormalizedDistanceToOutside(0.5F);
             renderCloudCube(bufferIn, cloudsX, cloudsY, cloudsZ, cloudsColor,
                     new Vector3f((skyChunk.getX() * SkyChunk.size) + entry.getX(), (skyChunk.getY() * SkyChunk.size) + entry.getY(), (skyChunk.getZ() * SkyChunk.size) + entry.getZ())
@@ -369,6 +380,40 @@ public class ThreadedCloudBuilder {
         }
 
         return bufferIn.end();
+    }
+
+    //TODO: this will have more issues since skychunk changed to 32 size
+    private void calculateNormalizedDistanceToOutside(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+
+        //bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
+
+        for (Iterator<Map.Entry<Long, SkyChunk.SkyChunkPoint>> it = skyChunk.getLookupPointsOffThreadAlreadyExisting().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Long, SkyChunk.SkyChunkPoint> entry = it.next();
+            SkyChunk.SkyChunkPoint skyChunkPointNew = entry.getValue();
+            long hash = entry.getKey();
+
+
+            float dist = skyChunkPointNew.calculateNormalizedDistanceToOutside();
+            skyChunkPointNew.setNormalizedDistanceToOutside(dist);
+            //Random random = new Random();
+            //skyChunkPointNew.setNormalizedDistanceToOutside(random.nextFloat());
+            //skyChunkPointNew.setNormalizedDistanceToOutside(1);
+
+            SkyChunk.SkyChunkPoint skyChunkPointOld = skyChunk.getPointsOffThreadPrevUpdate().get(hash);
+            if (skyChunkPointOld != null) {
+                float oldDist = skyChunkPointOld.getNormalizedDistanceToOutside();
+                if (oldDist != dist) {
+                    //move to a transition render
+                    skyChunk.getLookupPointsOffThreadBeingAdded().put(hash, skyChunkPointNew);
+                    skyChunk.getLookupPointsOffThreadBeingRemoved().put(hash, skyChunkPointOld);
+
+                    //remove from existing render
+                    it.remove();
+                }
+            }
+        }
+
+        //return bufferIn.end();
     }
 
     /*private int getTicks() {
@@ -398,6 +443,7 @@ public class ThreadedCloudBuilder {
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
         time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 0.2F);
+        //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 2F);
         //System.out.println(time);
         //time = 202985;
         //time = 0;

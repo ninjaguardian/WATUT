@@ -172,6 +172,14 @@ public class SkyChunk {
         }
     }
 
+    public HashMap<Long, SkyChunkPoint> getLookupPointsOffThreadA() {
+        return lookupPointsOffThreadA;
+    }
+
+    public HashMap<Long, SkyChunkPoint> getLookupPointsOffThreadB() {
+        return lookupPointsOffThreadB;
+    }
+
     public HashMap<Long, SkyChunkPoint> getLookupPointsOffThreadAlreadyExisting() {
         return lookupPointsOffThreadAlreadyExisting;
     }
@@ -354,8 +362,9 @@ public class SkyChunk {
             return listRenderables;
         }
 
+        //TODO: support chunks outside of this
         public float calculateNormalizedDistanceToOutside() {
-            if (!isVisible) return 1F;
+            //if (!isVisible) return 1F;
             //just 1 axis for now to test creative idea
             //float maxDist = 4;
             float maxDist = 4;

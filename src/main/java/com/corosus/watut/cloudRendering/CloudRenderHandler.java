@@ -134,11 +134,16 @@ public class CloudRenderHandler {
         int processCount = 0;
         //synchronized (map) {
             threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.MAINTHREADUPLOADINGVBO);
+            boolean info = false;
             if (map.size() > 0) {
-                CULog.log("size " + map.size());
+                info = true;
+                //CULog.log("size " + map.size());
             }
-
-            for (Iterator<Map.Entry<Long, SkyChunk>> it = map.entrySet().iterator(); processCount < 20 && it.hasNext(); ) {
+            int maxPerTick = 20;
+            if (map.size() > 200) {
+                maxPerTick = map.size() / 10;
+            }
+            for (Iterator<Map.Entry<Long, SkyChunk>> it = map.entrySet().iterator(); processCount < maxPerTick && it.hasNext(); ) {
 
                 Map.Entry<Long, SkyChunk> entry = it.next();
                 SkyChunk skyChunk = entry.getValue();
@@ -174,6 +179,11 @@ public class CloudRenderHandler {
 
             }
             threadedCloudBuilder.setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
+
+            if (info) {
+                //CULog.log("size " + map.size());
+                CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
+            }
         }
 
         /*if (!threadedCloudBuilder.isRunning()) {
@@ -296,11 +306,13 @@ public class CloudRenderHandler {
                         renderableData.getVertexBufferAddedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
                         ThreadedVertexBuffer.unbind();
 
-                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 0, 0));
+                        if (fade < 1F) {
+                            WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 1, 0));
 
-                        renderableData.getVertexBufferRemovedPoints().bind();
-                        renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
-                        ThreadedVertexBuffer.unbind();
+                            renderableData.getVertexBufferRemovedPoints().bind();
+                            renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                            ThreadedVertexBuffer.unbind();
+                        }
 
                         RenderSystem.enableCull();
                     }

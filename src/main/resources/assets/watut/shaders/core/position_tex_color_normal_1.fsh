@@ -110,6 +110,18 @@ float[8](15.0/64.0, 47.0/64.0, 7.0/64.0, 39.0/64.0, 13.0/64.0, 45.0/64.0, 5.0/64
 float[8](63.0/64.0, 31.0/64.0, 55.0/64.0, 23.0/64.0, 61.0/64.0, 29.0/64.0, 53.0/64.0, 21.0/64.0)
 );
 
+const float ditherMatrixInverted[8][8] = float[8][8](
+float[8](1.0 - 0.0/64.0, 1.0 - 32.0/64.0, 1.0 - 8.0/64.0, 1.0 - 40.0/64.0, 1.0 - 2.0/64.0, 1.0 - 34.0/64.0, 1.0 - 10.0/64.0, 1.0 - 42.0/64.0),
+float[8](1.0 - 48.0/64.0, 1.0 - 16.0/64.0, 1.0 - 56.0/64.0, 1.0 - 24.0/64.0, 1.0 - 50.0/64.0, 1.0 - 18.0/64.0, 1.0 - 58.0/64.0, 1.0 - 26.0/64.0),
+float[8](1.0 - 12.0/64.0, 1.0 - 44.0/64.0, 1.0 - 4.0/64.0, 1.0 - 36.0/64.0, 1.0 - 14.0/64.0, 1.0 - 46.0/64.0, 1.0 - 6.0/64.0, 1.0 - 38.0/64.0),
+float[8](1.0 - 60.0/64.0, 1.0 - 28.0/64.0, 1.0 - 52.0/64.0, 1.0 - 20.0/64.0, 1.0 - 62.0/64.0, 1.0 - 30.0/64.0, 1.0 - 54.0/64.0, 1.0 - 22.0/64.0),
+float[8](1.0 - 3.0/64.0, 1.0 - 35.0/64.0, 1.0 - 11.0/64.0, 1.0 - 43.0/64.0, 1.0 - 1.0/64.0, 1.0 - 33.0/64.0, 1.0 - 9.0/64.0, 1.0 - 41.0/64.0),
+float[8](1.0 - 51.0/64.0, 1.0 - 19.0/64.0, 1.0 - 59.0/64.0, 1.0 - 27.0/64.0, 1.0 - 49.0/64.0, 1.0 - 17.0/64.0, 1.0 - 57.0/64.0, 1.0 - 25.0/64.0),
+float[8](1.0 - 15.0/64.0, 1.0 - 47.0/64.0, 1.0 - 7.0/64.0, 1.0 - 39.0/64.0, 1.0 - 13.0/64.0, 1.0 - 45.0/64.0, 1.0 - 5.0/64.0, 1.0 - 37.0/64.0),
+float[8](1.0 - 63.0/64.0, 1.0 - 31.0/64.0, 1.0 - 55.0/64.0, 1.0 - 23.0/64.0, 1.0 - 61.0/64.0, 1.0 - 29.0/64.0, 1.0 - 53.0/64.0, 1.0 - 21.0/64.0)
+);
+
+
 void main() {
     vec4 color = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
     /*if (color.a < 0.1) {
@@ -130,14 +142,23 @@ void main() {
 
     // Fetch the corresponding dither value
     float ditherValue = ditherMatrix[pos.y][pos.x];
+    float ditherValueInv = ditherMatrixInverted[pos.y][pos.x];
 
     //fragColor = color;//linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
     //fragColor = linear_fog(color, vertexDistance, 50, 512, FogColor);
     // Apply dithering based on the transparency level
-    if (Lightning_Pos.x > ditherValue) {
-        fragColor = linear_fog(color, vertexDistance, 50, 512, FogColor);
+    if (Lightning_Pos.y == 0) {
+        if (Lightning_Pos.x > ditherValue) {
+            fragColor = linear_fog(color, vertexDistance, 150, 512, FogColor);
+        } else {
+            discard;// Discard the fragment to create transparency
+        }
     } else {
-        discard;  // Discard the fragment to create transparency
+        if (Lightning_Pos.x > ditherValueInv) {
+            fragColor = linear_fog(color, vertexDistance, 150, 512, FogColor);
+        } else {
+            discard;  // Discard the fragment to create transparency
+        }
     }
     //fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
     //fragColor.w *= rand;

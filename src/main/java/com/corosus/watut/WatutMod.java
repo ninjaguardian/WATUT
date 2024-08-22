@@ -3,7 +3,6 @@ package com.corosus.watut;
 import com.corosus.modconfig.CoroConfigRegistry;
 import com.corosus.watut.cloudRendering.CloudRenderHandler;
 import com.corosus.watut.cloudRendering.ShaderInstanceCloud;
-import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilderPersistentStorage;
 import com.corosus.watut.config.ConfigClient;
 import com.corosus.watut.config.ConfigCommon;
 import com.corosus.watut.cloudRendering.threading.vanillaThreaded.ThreadedBufferBuilder;
