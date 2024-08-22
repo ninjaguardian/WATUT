@@ -300,7 +300,8 @@ public class ThreadedCloudBuilder {
                 } else if (scale == 4) {
                     //generateAlgoCloud(skyChunk, 5, 50);
                     if (skyChunk.getY() == 1) {
-                        generateAlgoCloud(skyChunk, 15, 15);
+                        //generateAlgoCloud(skyChunk, 15, 15);
+                        generateAlgoCloudv2(skyChunk.getX(), skyChunk.getZ(), 15, 15+32);
                     }
                 }
 
@@ -426,6 +427,55 @@ public class ThreadedCloudBuilder {
 
     private int getTicksVolatile() {
         return (int) getLevelVolatile().getGameTime();
+    }
+
+    private void generateAlgoCloudv2(int skyChunkPosX, int skyChunkPosZ, int sizeY, int posY) {
+
+        int worldPosX = skyChunkPosX * SkyChunk.size;
+        int worldPosZ = skyChunkPosZ * SkyChunk.size;
+
+        int size = 800;
+        size = SkyChunk.size;
+        //size = 200;
+        //Cloud cloudLarge = new Cloud(size, sizeY, size);
+
+        PerlinNoise perlinNoise = PerlinNoiseHelper.get().getPerlinNoise();
+        if (Minecraft.getInstance().level == null) return;
+
+        //TODO: use time value set at start of job, not this
+        long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
+        //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.2F);
+        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 0.2F);
+        //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 2F);
+        //System.out.println(time);
+        //time = 202985;
+        //time = 0;
+
+        //BlockPos skyChunkWorldPos = skyChunk.getWorldPos();
+        Vec3 vec = WatutMod.cloudRenderHandler.getPosCloudOffset();
+        //skyChunkWorldPos = skyChunkWorldPos.subtract(new BlockPos(Mth.floor(vec.x / SkyChunk.size), Mth.floor(vec.y / SkyChunk.size), Mth.floor(vec.z / SkyChunk.size)));
+        //skyChunkWorldPos = skyChunkWorldPos.offset(new BlockPos(Mth.floor(vec.x), Mth.floor(vec.y), Mth.floor(vec.z)));
+
+        for (int x = 0; x < SkyChunk.size; x++) {
+            for (int y = 0; y < sizeY; y++) {
+                for (int z = 0; z < SkyChunk.size; z++) {
+
+                    int indexX = worldPosX + x;
+                    int indexY = posY + y;
+                    int indexZ = worldPosZ + z;
+
+                    double scaleP = 10;
+                    double noiseVal = perlinNoise.getValue(((indexX) * scaleP) + time, ((indexY) * scaleP) + time,((indexZ) * scaleP) + time)/* + 0.2F*/;
+
+                    float noiseThreshAdj = (float) (0.3F/* + (Math.sin(time * 0.1F) * 0.1F)*/);
+                    if (Math.abs(noiseVal) > 0.0 + noiseThreshAdj) {
+                        //skyChunk.addPoint(false, x, y + offsetY, z);
+                        SkyChunkManager.instance().addPoint(false, indexX, indexY, indexZ);
+                    }
+
+                }
+            }
+        }
     }
 
     //for huge overcast area
@@ -654,7 +704,7 @@ public class ThreadedCloudBuilder {
         //TODO: use time value set at start of job, not this
         long time = (long) (Minecraft.getInstance().level.getGameTime() * 0.1F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 1F);
-        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 0.1F);
+        time = (long) (Minecraft.getInstance().level.getGameTime() * 0.05F * 0.02F);
         //time = (long) (Minecraft.getInstance().level.getGameTime() * 0.8F);
         time += (cloudIndex * 25);
         //time = 0;
