@@ -75,7 +75,7 @@ public class CloudRenderHandler {
             posCloudOffset = new Vec3(0, 0, 0);
         }
 
-        posCloudOffset = posCloudOffset.add(0.01F, 0, 0);
+        posCloudOffset = posCloudOffset.add(0.03F, 0, 0);
     }
 
     public void renderClouds(PoseStack p_254145_, Matrix4f p_254537_, float p_254364_, double camX, double camY, double camZ) {
@@ -121,7 +121,7 @@ public class CloudRenderHandler {
         //threadedCloudBuilder.setScale(1);
         threadedCloudBuilder.setCloudsY(200 / threadedCloudBuilder.getScale());
         skyChunkRenderRadius = Minecraft.getInstance().options.renderDistance().get() / 4;
-        skyChunkRenderRadius = 4;
+        skyChunkRenderRadius = 5;
 
 
         //initSkyChunksForGrid();
@@ -139,7 +139,7 @@ public class CloudRenderHandler {
                 info = true;
                 //CULog.log("size " + map.size());
             }
-            int maxPerTick = 20;
+            int maxPerTick = 2;
             if (map.size() > 200) {
                 maxPerTick = map.size() / 10;
             }
@@ -182,7 +182,7 @@ public class CloudRenderHandler {
 
             if (info) {
                 //CULog.log("size " + map.size());
-                CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
+                //CULog.log("getLastNextElementByte " + WatutMod.threadedBufferBuilder.getLastNextElementByte());
             }
         }
 
@@ -289,6 +289,7 @@ public class CloudRenderHandler {
                         //float fade = (float) Math.sin((float)ticksSinceVBOUpdate * 0.2F) * 0.5F + 0.49F;//Mth.clamp(0, 9999, );
                         long timeSinceUpload = time - skyChunk.getLastUploadTime();
                         int fadeTicks = 20 * 2;
+                        //fadeTicks = 1;
                         float fade = timeSinceUpload * (1F / fadeTicks);
                         if (timeSinceUpload > fadeTicks) {
                             fade = 1F;

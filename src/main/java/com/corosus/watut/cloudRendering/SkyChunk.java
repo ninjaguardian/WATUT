@@ -379,14 +379,14 @@ public class SkyChunk {
                 if (xCheck >= 0 && xCheck <= SkyChunk.size &&
                         yCheck >= 0 && yCheck <= SkyChunk.size &&
                         zCheck >= 0 && zCheck <= SkyChunk.size) {
-                    if (!skyChunk.getPointsOffThread().containsKey(hash)) {
+                    if (!skyChunk.getPointsOffThread().containsKey(hash) && !skyChunk.getLookupPointsOffThreadBeingAdded().containsKey(hash)) {
                         boolean stillClear = true;
                         //if we want spots below an upper portion of the cloud to appear dark, as if blocked by the sun
                         //for bigger gaps this might not be ideal
                         for (int xxx = 0; xxx <= maxLookAhead; xxx++) {
                             int yyCheck = yCheck + xxx;
                             long hash2 = BlockPos.asLong(xCheck, yyCheck, zCheck);
-                            if (skyChunk.getPointsOffThread().containsKey(hash2)) {
+                            if (skyChunk.getPointsOffThread().containsKey(hash2) || skyChunk.getLookupPointsOffThreadBeingAdded().containsKey(hash2)) {
                                 stillClear = false;
                                 break;
                             }
