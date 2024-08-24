@@ -26,10 +26,11 @@ public class CloudRenderHandler {
     private boolean mode_triangles = true;
     public Frustum cullingFrustum;
     private int skyChunkRenderRadius = 1;
-    private boolean generateClouds = true;
 
     private Vec3 vecCam = Vec3.ZERO;
     private ThreadedCloudBuilder threadedCloudBuilder = new ThreadedCloudBuilder();
+
+    private int lastScale = 4;
 
     private Vec3 posCloudOffset = new Vec3(0, 0, 0);
 
@@ -96,12 +97,15 @@ public class CloudRenderHandler {
         threadedCloudBuilder.setSizeZ(40);
 
         threadedCloudBuilder.setScale(4);
+        //for live testing, this can still crash thread if changed live
+        if (threadedCloudBuilder.getScale() != lastScale) {
+            SkyChunkManager.instance().getSkyChunks().clear();
+            lastScale = threadedCloudBuilder.getScale();
+        }
         //threadedCloudBuilder.setScale(1);
-        threadedCloudBuilder.setCloudsY(200 / threadedCloudBuilder.getScale());
+        threadedCloudBuilder.setCloudsY(250);
         skyChunkRenderRadius = Minecraft.getInstance().options.renderDistance().get() / 4;
-        skyChunkRenderRadius = 5;
-
-        this.generateClouds = false;
+        skyChunkRenderRadius = Math.max(512 / (threadedCloudBuilder.getScale() * SkyChunk.size), 1);
 
         if (threadedCloudBuilder.getSyncState() == ThreadedCloudBuilder.SyncState.IDLE) {
             ConcurrentHashMap<Long, SkyChunk> map = threadedCloudBuilder.getQueueWaitingForUploadSkyChunks();
@@ -188,6 +192,7 @@ public class CloudRenderHandler {
 
         if (renderClouds) {
             Random rand3 = new Random();
+            List<SkyChunk> asd = getListOfSkyChunksForRender();
             for (SkyChunk skyChunk : getListOfSkyChunksForRender()) {
                 RenderableData renderableData = skyChunk.getRenderableData();
                 Vec3 vecCamVBO = skyChunk.getCameraPosForRender();
@@ -258,6 +263,11 @@ public class CloudRenderHandler {
         return getListOfSkyChunks(true, new Vec3i(skyChunkRenderRadius, skyChunkRenderRadius, skyChunkRenderRadius), cameraSkyChunk);
     }
 
+    public List<SkyChunk> getListOfSkyChunksForAlgoClouds() {
+        BlockPos cameraSkyChunkAtCloudHeight = SkyChunk.worldPosToChunkPos((vecCam.x / threadedCloudBuilder.getScale()) + 0, threadedCloudBuilder.getCloudsY() / threadedCloudBuilder.getScale(), vecCam.z / threadedCloudBuilder.getScale());
+        return getListOfSkyChunks(true, new Vec3i(skyChunkRenderRadius, 0, skyChunkRenderRadius), cameraSkyChunkAtCloudHeight);
+    }
+
     public List<SkyChunk> getListOfSkyChunksForRender() {
         BlockPos cameraSkyChunk = SkyChunk.worldPosToChunkPos((vecCam.x / threadedCloudBuilder.getScale()) + 0, vecCam.y / threadedCloudBuilder.getScale(), vecCam.z / threadedCloudBuilder.getScale());
         return getListOfSkyChunks(false, new Vec3i(skyChunkRenderRadius, skyChunkRenderRadius, skyChunkRenderRadius), cameraSkyChunk);
@@ -271,7 +281,7 @@ public class CloudRenderHandler {
                 for (int zz = -size.getZ(); zz <= size.getZ(); zz++) {
                     //float dist = Vector3f.distance(xx * SkyChunk.size, yy * SkyChunk.size, zz * SkyChunk.size, SkyChunk.size / 2, SkyChunk.size / 2, SkyChunk.size / 2);
                     float dist = Vector3f.distance(xx, yy, zz, 0, 0, 0);
-                    if (dist <= skyChunkRenderRadius) {
+                    //if (dist <= skyChunkRenderRadius) {
                         SkyChunk skyChunk;
                         if (createIfMissing) {
                             skyChunk = SkyChunkManager.instance().getSkyChunk(cameraSkyChunk.getX() + xx, cameraSkyChunk.getY() + yy, cameraSkyChunk.getZ() + zz);
@@ -282,7 +292,7 @@ public class CloudRenderHandler {
                         if (skyChunk != null) {
                             skyChunkList.add(skyChunk);
                         }
-                    }
+                    //}
                 }
             }
         }

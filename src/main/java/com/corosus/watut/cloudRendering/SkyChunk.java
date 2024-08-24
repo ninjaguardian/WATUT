@@ -42,6 +42,9 @@ public class SkyChunk {
     private long lastUploadTime = 0;
     private int rebuildFrequency = 20*5;
     private boolean isWaitingToUploadData = false;
+    //baked into the mark dirty now
+    //private boolean needsReinit = true;
+    private boolean isDirty = false;
 
     private boolean clientCameraInCloudForSkyChunk = false;
 
@@ -73,6 +76,33 @@ public class SkyChunk {
         return y;
     }
 
+    public int getZ() {
+        return z;
+    }
+
+    /*public boolean isNeedsReinit() {
+        return needsReinit;
+    }
+
+    public void setNeedsReinit(boolean needsReinit) {
+        this.needsReinit = needsReinit;
+    }*/
+
+    public void markDirty() {
+        if (!isDirty) {
+            prepForNewBuild();
+        }
+        this.isDirty = true;
+    }
+
+    public void markDirty(boolean value) {
+        this.isDirty = value;
+    }
+
+    public boolean isDirty() {
+        return this.isDirty;
+    }
+
     public long getLastUploadTime() {
         return lastUploadTime;
     }
@@ -80,20 +110,6 @@ public class SkyChunk {
     public void setLastUploadTime(long lastUploadTime) {
         this.lastUploadTime = lastUploadTime;
     }
-
-    public int getZ() {
-        return z;
-    }/*
-
-
-
-    public boolean isBeingBuilt() {
-        return beingBuilt;
-    }
-
-    public void setBeingBuilt(boolean beingBuilt) {
-        this.beingBuilt = beingBuilt;
-    }*/
 
     public boolean needsBuild() {
         if (Minecraft.getInstance().level == null) return false;
@@ -146,6 +162,14 @@ public class SkyChunk {
 
     public HashMap<Long, SkyChunkPoint> getPointsMainThread() {
         return lookupPointsMainThread;
+    }
+
+    public void prepForNewBuild() {
+        swapOffThreadUse();
+        getPointsOffThread().clear();
+        getLookupPointsOffThreadAlreadyExisting().clear();
+        getLookupPointsOffThreadBeingAdded().clear();
+        getLookupPointsOffThreadBeingRemoved().clear();
     }
 
     public void swapOffThreadUse() {
@@ -250,6 +274,7 @@ public class SkyChunk {
                 }
             }
         }
+        markDirty();
         return hash;
     }
 
@@ -362,7 +387,7 @@ public class SkyChunk {
             return listRenderables;
         }
 
-        //TODO: support chunks outside of this
+        //TODO: support chunks outside of this, if you do, make sure chunk exists before touching
         public float calculateNormalizedDistanceToOutside() {
             //if (!isVisible) return 1F;
             //just 1 axis for now to test creative idea

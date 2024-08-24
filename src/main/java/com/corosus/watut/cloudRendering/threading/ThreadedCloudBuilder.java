@@ -66,7 +66,7 @@ public class ThreadedCloudBuilder {
 
     public boolean testOnce = false;
 
-    private ConcurrentHashMap<Long, SkyChunk> queueUpdateSkyChunks = new ConcurrentHashMap<>();
+    //private ConcurrentHashMap<Long, SkyChunk> queueUpdateSkyChunks = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Long, SkyChunk> queueWaitingForUploadSkyChunks = new ConcurrentHashMap<>();
 
     public synchronized SyncState getSyncState() {
@@ -99,11 +99,11 @@ public class ThreadedCloudBuilder {
 
     public void setColumns(int columns) {
         this.columns = columns;
-    }
+    }/*
 
     public ConcurrentHashMap<Long, SkyChunk> getQueueUpdateSkyChunks() {
         return queueUpdateSkyChunks;
-    }
+    }*/
 
     public ConcurrentHashMap<Long, SkyChunk> getQueueWaitingForUploadSkyChunks() {
         return queueWaitingForUploadSkyChunks;
@@ -160,109 +160,91 @@ public class ThreadedCloudBuilder {
             return false;
         }
 
+        //dont touch vbos until we've finished uploading them, prevents buffer infinite growth issue
+        if (syncState != SyncState.IDLE || getQueueWaitingForUploadSkyChunks().size() != 0) {
+            return false;
+        }
+
         boolean buildSlowClouds = lastBuildTime <= Minecraft.getInstance().level.getGameTime();
+        boolean buildAnyClouds = buildSlowClouds;
         if (buildSlowClouds) {
             rebuildFrequency = 20*1;
             rebuildFrequency = 20 * 10;
+            rebuildFrequency = 20 * 5;
             //rebuildFrequency = 40;
             lastBuildTime = Minecraft.getInstance().level.getGameTime() + rebuildFrequency;
-            for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding()) {
-                if (true || skyChunk.needsBuild()) {
-                    long hash = skyChunk.getLongHashCode();
-                    if (!getQueueWaitingForUploadSkyChunks().contains(hash)) {
-                        //TODO: replace with semaphore somewhere?
-                        if (!getQueueUpdateSkyChunks().contains(hash)) {
-                            getQueueUpdateSkyChunks().put(hash, skyChunk);
-                        }
-                    }
-                }
-            }
         }
-        if (getQueueUpdateSkyChunks().size() == 0) {
+
+        if (!buildAnyClouds) {
             return false;
         }
 
         Vec3 vec3 = new Vec3(0, 0, 0);
 
-        //dont touch vbos until we've finished uploading them, prevents buffer infinite growth issue
-        if (syncState == SyncState.IDLE && getQueueWaitingForUploadSkyChunks().size() == 0) {
-            this.setSyncState(SyncState.OFFTHREADBUILDINGVBO);
-            for (Iterator<Map.Entry<Long, SkyChunk>> it = getQueueUpdateSkyChunks().entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Long, SkyChunk> entry = it.next();
-                SkyChunk skyChunk = entry.getValue();
+        this.setSyncState(SyncState.OFFTHREADBUILDINGVBO);
+
+        //algo cloud layer
+        if (buildSlowClouds) {
+            List<SkyChunk> asd = WatutMod.cloudRenderHandler.getListOfSkyChunksForAlgoClouds();
+            for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForAlgoClouds()) {
                 if (skyChunk.isWaitingToUploadData()) continue;
-                skyChunk.swapOffThreadUse();
-                skyChunk.getPointsOffThread().clear();
-                skyChunk.getLookupPointsOffThreadAlreadyExisting().clear();
-                skyChunk.getLookupPointsOffThreadBeingAdded().clear();
-                skyChunk.getLookupPointsOffThreadBeingRemoved().clear();
+
+                generateAlgoCloudv2(skyChunk.getX(), skyChunk.getZ(), 60 / scale, getCloudsY() / scale);
             }
+        }
 
-            //SkyChunkManager.instance().addPoint(false, 0, 100, 0);
+        //SkyChunkManager.instance().addPoint(false, 0, 100, 0);
 
-            //TODO: entire rework needed here, needs to be instanced ala weather2 weather objects
-            /*for (int ii = 0; ii < cloudCount; ii++) {
-                RenderableData renderableData = null;
+        //TODO: entire rework needed here, needs to be instanced ala weather2 weather objects
+        /*for (int ii = 0; ii < cloudCount; ii++) {
+            RenderableData renderableData = null;
 
-            }*/
+        }*/
 
-            this.buildCloud(50 / scale, 130 / scale, 110 / scale, scale);
+        //test lenticular cloud
+        this.buildCloud(50 / scale, 130 / scale, 110 / scale, scale);
 
-            for (Iterator<Map.Entry<Long, SkyChunk>> it = getQueueUpdateSkyChunks().entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<Long, SkyChunk> entry = it.next();
-                SkyChunk skyChunk = entry.getValue();
-                if (skyChunk.isWaitingToUploadData()) continue;
 
-                if (scale == 1) {
-                    //TODO: note, offsetY + sizeY must never be above 128, maybe do this code block differently, assumes getQueueUpdateSkyChunks doesnt go above or below 0 for y for sky chunks
-                    //generateAlgoCloud(skyChunk, 5, 120);
-                    if (skyChunk.getY() == 5) {
-                        generateAlgoCloud(skyChunk, 15, 15);
-                    }
-                } else if (scale == 4) {
-                    //generateAlgoCloud(skyChunk, 5, 50);
-                    if (skyChunk.getY() == 1) {
-                        //generateAlgoCloud(skyChunk, 15, 15);
-                        generateAlgoCloudv2(skyChunk.getX(), skyChunk.getZ(), 15, 15+32);
-                    }
-                }
+        //for (Iterator<Map.Entry<Long, SkyChunk>> it = getQueueUpdateSkyChunks().entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<Map.Entry<Long, SkyChunk>> it = SkyChunkManager.instance().getSkyChunks().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Long, SkyChunk> entry = it.next();
+            SkyChunk skyChunk = entry.getValue();
+            if (skyChunk.isWaitingToUploadData() || !skyChunk.isDirty()) continue;
 
-                //remove from update queue
-                it.remove();
+            Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
+            this.setCamVec(vecCam);
 
-                Vec3 vecCam = Minecraft.getInstance().cameraEntity.position();
-                this.setCamVec(vecCam);
+            skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
 
-                skyChunk.setCameraPosDuringBuild(new Vec3(vecCam.x, vecCam.y, vecCam.z));
+            skyChunk.populateToBeRemovedPoints();
 
-                skyChunk.populateToBeRemovedPoints();
+            calculateNormalizedDistanceToOutside(skyChunk);
+            skyChunk.getRenderableData().setVbo(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadAlreadyExisting(), vec3, scale));
+            skyChunk.getRenderableData().setVboAddedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingAdded(), vec3, scale));
+            skyChunk.getRenderableData().setVboRemovedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingRemoved(), vec3, scale));
 
-                calculateNormalizedDistanceToOutside(skyChunk);
-                skyChunk.getRenderableData().setVbo(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadAlreadyExisting(), 0, cloudsY, 0, vec3, scale));
-                //TODO: using these is exploding the buffer size, why? and it continues after i turn them off until a restart
-                skyChunk.getRenderableData().setVboAddedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingAdded(), 0, cloudsY, 0, vec3, scale));
-                skyChunk.getRenderableData().setVboRemovedPoints(pointsToVBO(WatutMod.threadedBufferBuilder, skyChunk, skyChunk.getLookupPointsOffThreadBeingRemoved(), 0, cloudsY, 0, vec3, scale));
-
-                //CULog.log("skyChunk.getPointsOffThreadPrevUpdate() " + skyChunk.getPointsOffThreadPrevUpdate().size());
+            //CULog.log("skyChunk.getPointsOffThreadPrevUpdate() " + skyChunk.getPointsOffThreadPrevUpdate().size());
                 /*CULog.log("skyChunk.getLookupPointsOffThreadA() " + skyChunk.getLookupPointsOffThreadA().size());
                 CULog.log("skyChunk.getLookupPointsOffThreadB() " + skyChunk.getLookupPointsOffThreadB().size());
                 CULog.log("skyChunk.getLookupPointsOffThreadAlreadyExisting() " + skyChunk.getLookupPointsOffThreadAlreadyExisting().size());
                 CULog.log("skyChunk.getLookupPointsOffThreadBeingAdded() " + skyChunk.getLookupPointsOffThreadBeingAdded().size());
                 CULog.log("skyChunk.getLookupPointsOffThreadBeingRemoved() " + skyChunk.getLookupPointsOffThreadBeingRemoved().size());*/
 
-                skyChunk.setLastBuildTime(getTicksVolatile());
+            skyChunk.setLastBuildTime(getTicksVolatile());
 
-                //add to upload queue
-                skyChunk.setWaitingToUploadData(true);
-                getQueueWaitingForUploadSkyChunks().put(entry.getKey(), skyChunk);
-            }
-
-            setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
+            //add to upload queue
+            skyChunk.setWaitingToUploadData(true);
+            //skyChunk.setNeedsReinit(true);
+            skyChunk.markDirty(false);
+            getQueueWaitingForUploadSkyChunks().put(entry.getKey(), skyChunk);
         }
+
+        setSyncState(ThreadedCloudBuilder.SyncState.IDLE);
+
         return true;
     }
 
-    private ThreadedBufferBuilder.RenderedBuffer pointsToVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, HashMap<Long, SkyChunk.SkyChunkPoint> skyChunkPoints, double cloudsX, double cloudsY, double cloudsZ, Vec3 cloudsColor, float scale) {
+    private ThreadedBufferBuilder.RenderedBuffer pointsToVBO(ThreadedBufferBuilder bufferIn, SkyChunk skyChunk, HashMap<Long, SkyChunk.SkyChunkPoint> skyChunkPoints, Vec3 cloudsColor, float scale) {
 
         bufferIn.begin(VertexFormat.Mode.QUADS, WatutMod.POSITION_TEX_COLOR_NORMAL_VEC3);
 
@@ -278,6 +260,7 @@ public class ThreadedCloudBuilder {
     }
 
     //TODO: this will have more issues since skychunk changed to 32 size
+    //TODO: couldnt we redesign this so that the lookups are populated as were adding points to the skychunk?
     private void calculateNormalizedDistanceToOutside(SkyChunk skyChunk) {
 
         //move existing points to new and old points as if theres a change
@@ -358,7 +341,9 @@ public class ThreadedCloudBuilder {
                     int indexY = posY + y;
                     int indexZ = worldPosZ + z;
 
-                    double scaleP = 10;
+                    //double scaleP = 10;
+                    double scaleP = 2 * scale;
+                    //double scaleP = 10 / (scale / 2);
                     double noiseVal = perlinNoise.getValue(((indexX) * scaleP) + time, ((indexY) * scaleP) + time,((indexZ) * scaleP) + time)/* + 0.2F*/;
 
                     float noiseThreshAdj = (float) (0.3F/* + (Math.sin(time * 0.1F) * 0.1F)*/);
@@ -692,6 +677,10 @@ public class ThreadedCloudBuilder {
                     new Vector3f(1.0F, 0.0F, -1.0F)};
 
             Vector3f normal = new Vector3f(dir.getNormal().getX(), dir.getNormal().getY(), dir.getNormal().getZ());
+            //playing around with idea of other sides being brighter too
+            if (normal.x == -1) normal.x = 1;
+            if (normal.z == -1) normal.z = 1;
+            //Vector3f normal = new Vector3f(0F, dir.getNormal().getY(), 0F);
             //normal = new Vector3f(0, 0, 0);
             if (randRotate) normal.rotate(q2);
             float normalRange = 0.1F;
