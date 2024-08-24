@@ -1,5 +1,6 @@
 package com.corosus.watut.cloudRendering;
 
+import com.corosus.coroutil.util.CULog;
 import com.corosus.watut.ParticleRegistry;
 import com.corosus.watut.WatutMod;
 import com.corosus.watut.cloudRendering.threading.ThreadedCloudBuilder;
@@ -12,6 +13,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -105,7 +107,8 @@ public class CloudRenderHandler {
         //threadedCloudBuilder.setScale(1);
         threadedCloudBuilder.setCloudsY(250);
         skyChunkRenderRadius = Minecraft.getInstance().options.renderDistance().get() / 4;
-        skyChunkRenderRadius = Math.max(512 / (threadedCloudBuilder.getScale() * SkyChunk.size), 1);
+        skyChunkRenderRadius = Math.max(512 / (threadedCloudBuilder.getScale() * SkyChunk.size), 1) + 1;
+        //skyChunkRenderRadius = 1;
 
         if (threadedCloudBuilder.getSyncState() == ThreadedCloudBuilder.SyncState.IDLE) {
             ConcurrentHashMap<Long, SkyChunk> map = threadedCloudBuilder.getQueueWaitingForUploadSkyChunks();
@@ -190,66 +193,78 @@ public class CloudRenderHandler {
 
         boolean renderClouds = true;
 
+        int renderCount = 0;
         if (renderClouds) {
             Random rand3 = new Random();
             List<SkyChunk> asd = getListOfSkyChunksForRender();
             for (SkyChunk skyChunk : getListOfSkyChunksForRender()) {
                 RenderableData renderableData = skyChunk.getRenderableData();
-                Vec3 vecCamVBO = skyChunk.getCameraPosForRender();
-                WatutMod.cloudShader.VBO_RENDER_POS.set(new Vector3f((float)(vecCamVBO.x - vecCam.x), (float) (vecCamVBO.y - vecCam.y), (float) (vecCamVBO.z - vecCam.z)));
 
-                if (skyChunk.isInitialized()) {
-                    renderableData.getActiveRenderingVertexBuffer().bind();
+                Frustum frustum = Minecraft.getInstance().levelRenderer.getFrustum();
+                int scale = threadedCloudBuilder.getScale();
+                BlockPos pos = skyChunk.getWorldPos().multiply(scale);
+                AABB aabb = new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + (SkyChunk.size * scale), pos.getY() + (SkyChunk.size * scale), pos.getZ() + (SkyChunk.size * scale));
+                if (frustum.isVisible(aabb)) {
+                    renderCount++;
+                    Vec3 vecCamVBO = skyChunk.getCameraPosForRender();
+                    WatutMod.cloudShader.VBO_RENDER_POS.set(new Vector3f((float)(vecCamVBO.x - vecCam.x), (float) (vecCamVBO.y - vecCam.y), (float) (vecCamVBO.z - vecCam.z)));
 
-                    RenderSystem.colorMask(true, true, true, true);
-                    if (skyChunk.isClientCameraInCloudForSkyChunk()) {
-                        skyChunk.setClientCameraInCloudForSkyChunk(false);
-                        RenderSystem.disableCull();
-                    }
+                    if (skyChunk.isInitialized()) {
+                        renderableData.getActiveRenderingVertexBuffer().bind();
 
-                    if (rand3.nextFloat() > 0.993F && false) {
-                        Vector3f vec = new Vector3f(renderableData.getLightningPos());
-                        //TODO: skychunk changes, needs to be reworked, lightning could bleed into another chunk, for now just contain within chunk
-                        //vec.add(rand3.nextFloat() * threadedCloudBuilder.getSizeX(), rand3.nextFloat() * threadedCloudBuilder.getSizeY()/* + rand3.nextFloat(80)*/, rand3.nextFloat() * threadedCloudBuilder.getSizeZ());
-                        vec.add(rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size);
-                        WatutMod.cloudShader.LIGHTNING_POS.set(vec);
-                    } else {
-                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(0, -999, 0));
-                    }
+                        RenderSystem.colorMask(true, true, true, true);
+                        if (skyChunk.isClientCameraInCloudForSkyChunk()) {
+                            skyChunk.setClientCameraInCloudForSkyChunk(false);
+                            RenderSystem.disableCull();
+                        }
 
-                    //TEMP
-                    //float fade = (float) Math.sin((float)ticksSinceVBOUpdate * 0.2F) * 0.5F + 0.49F;//Mth.clamp(0, 9999, );
-                    long timeSinceUpload = time - skyChunk.getLastUploadTime();
-                    int fadeTicks = 20 * 2;
-                    //fadeTicks = 1;
-                    float fade = timeSinceUpload * (1F / fadeTicks);
-                    if (timeSinceUpload > fadeTicks) {
-                        fade = 1F;
-                    }
-                    //fade = 1F;
-                    WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1F, 0, 0));
+                        if (rand3.nextFloat() > 0.993F && false) {
+                            Vector3f vec = new Vector3f(renderableData.getLightningPos());
+                            //TODO: skychunk changes, needs to be reworked, lightning could bleed into another chunk, for now just contain within chunk
+                            //vec.add(rand3.nextFloat() * threadedCloudBuilder.getSizeX(), rand3.nextFloat() * threadedCloudBuilder.getSizeY()/* + rand3.nextFloat(80)*/, rand3.nextFloat() * threadedCloudBuilder.getSizeZ());
+                            vec.add(rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size, rand3.nextFloat() * SkyChunk.size);
+                            WatutMod.cloudShader.LIGHTNING_POS.set(vec);
+                        } else {
+                            WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(0, -999, 0));
+                        }
 
-                    ShaderInstance shaderinstance = RenderSystem.getShader();
-                    renderableData.getActiveRenderingVertexBuffer().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
-                    ThreadedVertexBuffer.unbind();
+                        //TEMP
+                        //float fade = (float) Math.sin((float)ticksSinceVBOUpdate * 0.2F) * 0.5F + 0.49F;//Mth.clamp(0, 9999, );
+                        long timeSinceUpload = time - skyChunk.getLastUploadTime();
+                        int fadeTicks = 20 * 2;
+                        //fadeTicks = 1;
+                        float fade = timeSinceUpload * (1F / fadeTicks);
+                        if (timeSinceUpload > fadeTicks) {
+                            fade = 1F;
+                        }
+                        //fade = 1F;
+                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1F, 0, 0));
 
-                    WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(fade, 0, 0));
-
-                    renderableData.getVertexBufferAddedPoints().bind();
-                    renderableData.getVertexBufferAddedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
-                    ThreadedVertexBuffer.unbind();
-
-                    if (fade < 1F) {
-                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 1, 0));
-
-                        renderableData.getVertexBufferRemovedPoints().bind();
-                        renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                        ShaderInstance shaderinstance = RenderSystem.getShader();
+                        renderableData.getActiveRenderingVertexBuffer().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
                         ThreadedVertexBuffer.unbind();
-                    }
 
-                    RenderSystem.enableCull();
+                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(fade, 0, 0));
+
+                        renderableData.getVertexBufferAddedPoints().bind();
+                        renderableData.getVertexBufferAddedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                        ThreadedVertexBuffer.unbind();
+
+                        if (fade < 1F) {
+                            WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 1, 0));
+
+                            renderableData.getVertexBufferRemovedPoints().bind();
+                            renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
+                            ThreadedVertexBuffer.unbind();
+                        }
+
+                        RenderSystem.enableCull();
+                    }
                 }
             }
+
+            //if (time % 10 == 0)
+                //CULog.log("renderCount " + renderCount);
         }
 
         p_254145_.popPose();
@@ -265,6 +280,7 @@ public class CloudRenderHandler {
 
     public List<SkyChunk> getListOfSkyChunksForAlgoClouds() {
         BlockPos cameraSkyChunkAtCloudHeight = SkyChunk.worldPosToChunkPos((vecCam.x / threadedCloudBuilder.getScale()) + 0, threadedCloudBuilder.getCloudsY() / threadedCloudBuilder.getScale(), vecCam.z / threadedCloudBuilder.getScale());
+        //int cloudHeightChunk = threadedCloudBuilder.getCloudsY() / (SkyChunk.size * threadedCloudBuilder.getScale());
         return getListOfSkyChunks(true, new Vec3i(skyChunkRenderRadius, 0, skyChunkRenderRadius), cameraSkyChunkAtCloudHeight);
     }
 

@@ -185,7 +185,6 @@ public class ThreadedCloudBuilder {
 
         //algo cloud layer
         if (buildSlowClouds) {
-            List<SkyChunk> asd = WatutMod.cloudRenderHandler.getListOfSkyChunksForAlgoClouds();
             for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForAlgoClouds()) {
                 if (skyChunk.isWaitingToUploadData()) continue;
 
@@ -202,6 +201,7 @@ public class ThreadedCloudBuilder {
         }*/
 
         //test lenticular cloud
+        this.performPrecalc();
         this.buildCloud(50 / scale, 130 / scale, 110 / scale, scale);
 
 
