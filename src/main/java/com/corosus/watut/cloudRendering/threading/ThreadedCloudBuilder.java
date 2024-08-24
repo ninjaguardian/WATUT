@@ -213,8 +213,8 @@ public class ThreadedCloudBuilder {
         boolean buildSlowClouds = lastBuildTime <= Minecraft.getInstance().level.getGameTime();
         if (buildSlowClouds) {
             rebuildFrequency = 20*1;
-            rebuildFrequency = 20 * 5;
-            //rebuildFrequency = 5;
+            rebuildFrequency = 20 * 10;
+            //rebuildFrequency = 40;
             lastBuildTime = Minecraft.getInstance().level.getGameTime() + rebuildFrequency;
             for (SkyChunk skyChunk : WatutMod.cloudRenderHandler.getListOfSkyChunksForBuilding()) {
                 if (true || skyChunk.needsBuild()) {
@@ -235,7 +235,8 @@ public class ThreadedCloudBuilder {
         //ThreadedBufferBuilder bufferbuilder = WatutMod.threadedBufferBuilder;
         Vec3 vec3 = new Vec3(0, 0, 0);
 
-        if (syncState == SyncState.IDLE) {
+        //dont touch vbos until we've finished uploading them, prevents buffer infinite growth issue
+        if (syncState == SyncState.IDLE && getQueueWaitingForUploadSkyChunks().size() == 0) {
             this.setSyncState(SyncState.OFFTHREADBUILDINGVBO);
             for (Iterator<Map.Entry<Long, SkyChunk>> it = getQueueUpdateSkyChunks().entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<Long, SkyChunk> entry = it.next();

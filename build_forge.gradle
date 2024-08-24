@@ -135,6 +135,9 @@ repositories {
     flatDir {
         dir 'libs'
     }
+    maven {
+        url "https://cursemaven.com"
+    }
 }
 
 apply plugin: 'org.spongepowered.mixin'
