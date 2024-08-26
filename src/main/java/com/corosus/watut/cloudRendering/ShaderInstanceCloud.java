@@ -19,6 +19,8 @@ public class ShaderInstanceCloud extends ShaderInstance {
     public final Uniform LIGHT0_DIRECTION2;
     @Nullable
     public final Uniform LIGHT1_DIRECTION2;
+    @Nullable
+    public final Uniform CLOUD_COLOR;
 
     public ShaderInstanceCloud(ResourceProvider p_173336_, ResourceLocation shaderLocation, VertexFormat p_173338_) throws IOException {
         super(p_173336_, shaderLocation, p_173338_);
@@ -26,5 +28,6 @@ public class ShaderInstanceCloud extends ShaderInstance {
         this.VBO_RENDER_POS = this.getUniform("VBO_Render_Pos");
         this.LIGHT0_DIRECTION2 = this.getUniform("Light0_Direction2");
         this.LIGHT1_DIRECTION2 = this.getUniform("Light0_Direction2");
+        this.CLOUD_COLOR = this.getUniform("CloudColor");
     }
 }

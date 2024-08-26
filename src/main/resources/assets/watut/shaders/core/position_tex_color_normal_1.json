@@ -27,6 +27,7 @@
         { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
         { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
         { "name": "Lightning_Pos", "type": "float", "count": 3, "values": [0.0, 0.0, 0.0] },
+        { "name": "CloudColor", "type": "float", "count": 4, "values": [0.0, 0.0, 0.0, 0.0] },
         { "name": "VBO_Render_Pos", "type": "float", "count": 3, "values": [0.0, 0.0, 0.0] }
     ]
 }

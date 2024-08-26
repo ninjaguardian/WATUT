@@ -8,7 +8,7 @@ uniform vec4 ColorModulator;
 uniform float FogStart;
 uniform float FogEnd;
 uniform vec4 FogColor;
-uniform vec3 Lightning_Pos;
+//uniform vec3 Lightning_Pos;
 
 in vec2 texCoord0;
 in float vertexDistance;
@@ -147,15 +147,17 @@ void main() {
     //fragColor = color;//linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
     //fragColor = linear_fog(color, vertexDistance, 50, 512, FogColor);
     // Apply dithering based on the transparency level
-    if (Lightning_Pos.y == 0) {
-        if (Lightning_Pos.x > ditherValue) {
-            fragColor = linear_fog(color, vertexDistance, 150, 512, FogColor);
+    bool invert = vertexColor.a < 0;
+    if (!invert) {
+        if (vertexColor.a > ditherValue) {
+            fragColor = linear_fog(color, vertexDistance, 250, 1024, FogColor);
         } else {
             discard;// Discard the fragment to create transparency
         }
     } else {
-        if (Lightning_Pos.x > ditherValueInv) {
-            fragColor = linear_fog(color, vertexDistance, 150, 512, FogColor);
+        //currently bugged
+        if ((vertexColor.a + 1) > ditherValueInv) {
+            fragColor = linear_fog(color, vertexDistance, 250, 1024, FogColor);
         } else {
             discard;  // Discard the fragment to create transparency
         }

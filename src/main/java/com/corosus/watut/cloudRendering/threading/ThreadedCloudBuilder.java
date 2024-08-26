@@ -644,6 +644,7 @@ public class ThreadedCloudBuilder {
         Random rand2 = new Random((long) (cubePos.x + cubePos.z));
 
         boolean randRotate = false;
+        Vec3 cloudColor = Minecraft.getInstance().level.getCloudColor(1F);
 
         float particleAlpha = 0.1F;
         //particleAlpha = (float) Math.random();
@@ -758,11 +759,24 @@ public class ThreadedCloudBuilder {
 
             float colorShift = 0.82F;
             colorShift = 0.99F;
-            particleRed = threshold * colorShift;
+            colorShift = 0.89F;
+            /*particleRed = threshold * colorShift;
             particleGreen = threshold * colorShift;
+            particleBlue = threshold;*/
+
+            /*particleRed = threshold * (0.5F);
+            particleGreen = threshold * (0.65F);
+            particleBlue = threshold;*/
+
+            particleRed = threshold * (0.75F);
+            particleGreen = threshold * (0.825F);
             particleBlue = threshold;
 
+            particleRed = (float) cloudColor.x;
+            particleGreen = (float) cloudColor.y;
+            particleBlue = (float) cloudColor.z;
 
+            //TODO: done in shader now
             float impact1 = 0.1F;
             //float impact1 = 0.0F;
             float heightFract = (1F - impact1) + ((cubePos.y / (float)(sizeY)) * impact1);
@@ -800,9 +814,17 @@ public class ThreadedCloudBuilder {
                 avector3f32[3].y *= distToOutsideHalfBlockAdj;
             //}
 
-            Random rand3 = new Random();
+            particleRed = 1;
+            particleGreen = 1;
+            particleBlue = 1;
+            particleAlpha = 1;
 
-            bufferIn.vertex(avector3f3[0].x()/* + rand3.nextFloat()*/, avector3f3[0].y(), avector3f3[0].z()).uv(f8, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
+            /*particleRed = 0;
+            particleGreen = 0;
+            particleBlue = 0;
+            particleAlpha = 1;*/
+
+            bufferIn.vertex(avector3f3[0].x(), avector3f3[0].y(), avector3f3[0].z()).uv(f8, f6).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
                     .vertex(distToOutsideAdj, avector3f32[0].y(), distToOutsideHalfBlockAdj).endVertex();
             bufferIn.vertex(avector3f3[1].x(), avector3f3[1].y(), avector3f3[1].z()).uv(f8, f5).color(particleRed, particleGreen, particleBlue, particleAlpha).normal(normal.x(), normal.y(), normal.z())
                     .vertex(distToOutsideAdj, avector3f32[1].y(), distToOutsideHalfBlockAdj).endVertex();

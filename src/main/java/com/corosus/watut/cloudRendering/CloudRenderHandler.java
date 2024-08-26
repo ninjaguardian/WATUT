@@ -17,6 +17,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,7 +106,7 @@ public class CloudRenderHandler {
             lastScale = threadedCloudBuilder.getScale();
         }
         //threadedCloudBuilder.setScale(1);
-        threadedCloudBuilder.setCloudsY(250);
+        threadedCloudBuilder.setCloudsY(256);
         skyChunkRenderRadius = Minecraft.getInstance().options.renderDistance().get() / 4;
         skyChunkRenderRadius = Math.max(512 / (threadedCloudBuilder.getScale() * SkyChunk.size), 1) + 1;
         //skyChunkRenderRadius = 1;
@@ -182,6 +183,18 @@ public class CloudRenderHandler {
             WatutMod.cloudShader.LIGHT0_DIRECTION2.set(new Vector3f(1, 0, 1));
             WatutMod.cloudShader.LIGHT1_DIRECTION2.set(new Vector3f(1, 0, 1));
         }
+
+        Vec3 vecCloudColor = getLevel().getCloudColor(1F);
+
+        if (WatutMod.cloudShader.CLOUD_COLOR != null) {
+
+            //WatutMod.cloudShader.LIGHT0_DIRECTION2.set(new Vector3f(x, 1, z));
+            //WatutMod.cloudShader.LIGHT1_DIRECTION2.set(new Vector3f(0, x, 0));
+            /*WatutMod.cloudShader.LIGHT0_DIRECTION2.set(new Vector3f(1, 0, 1));
+            WatutMod.cloudShader.LIGHT1_DIRECTION2.set(new Vector3f(x, 0, z));*/
+
+
+        }
         if (WatutMod.cloudShader.FOG_START != null) {
             WatutMod.cloudShader.FOG_START.set(0F);
             WatutMod.cloudShader.FOG_END.set(50F);
@@ -196,7 +209,7 @@ public class CloudRenderHandler {
         int renderCount = 0;
         if (renderClouds) {
             Random rand3 = new Random();
-            List<SkyChunk> asd = getListOfSkyChunksForRender();
+            //List<SkyChunk> asd = getListOfSkyChunksForRender();
             for (SkyChunk skyChunk : getListOfSkyChunksForRender()) {
                 RenderableData renderableData = skyChunk.getRenderableData();
 
@@ -238,20 +251,27 @@ public class CloudRenderHandler {
                             fade = 1F;
                         }
                         //fade = 1F;
-                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1F, 0, 0));
+                        //WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1F, 0, 0));
+                        WatutMod.cloudShader.CLOUD_COLOR.set(new Vector4f((float) vecCloudColor.x, (float) vecCloudColor.y, (float) vecCloudColor.z, 1F));
 
                         ShaderInstance shaderinstance = RenderSystem.getShader();
                         renderableData.getActiveRenderingVertexBuffer().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
                         ThreadedVertexBuffer.unbind();
 
-                        WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(fade, 0, 0));
+                        //WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(fade, 0, 0));
+                        WatutMod.cloudShader.CLOUD_COLOR.set(new Vector4f((float) vecCloudColor.x, (float) vecCloudColor.y, (float) vecCloudColor.z, fade));
 
                         renderableData.getVertexBufferAddedPoints().bind();
                         renderableData.getVertexBufferAddedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
                         ThreadedVertexBuffer.unbind();
 
+                        //currently bugged, turned off the inverting part
                         if (fade < 1F) {
-                            WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 1, 0));
+                            //WatutMod.cloudShader.LIGHTNING_POS.set(new Vector3f(1 - fade, 1, 0));
+                            //put into negatives to shader knows to use inverted dithering
+                            //WatutMod.cloudShader.CLOUD_COLOR.set(new Vector4f((float) vecCloudColor.x, (float) vecCloudColor.y, (float) vecCloudColor.z, 1 - fade - 1));
+                            //WatutMod.cloudShader.CLOUD_COLOR.set(new Vector4f((float) vecCloudColor.x, (float) vecCloudColor.y, (float) vecCloudColor.z, 0.99F));
+                            WatutMod.cloudShader.CLOUD_COLOR.set(new Vector4f((float) vecCloudColor.x, (float) vecCloudColor.y, (float) vecCloudColor.z, 1 - fade));
 
                             renderableData.getVertexBufferRemovedPoints().bind();
                             renderableData.getVertexBufferRemovedPoints().drawWithShader(p_254145_.last().pose(), p_254537_, shaderinstance);
